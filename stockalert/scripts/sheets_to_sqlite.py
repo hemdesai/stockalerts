@@ -44,8 +44,6 @@ def process_dataframe(df, category):
         # Debug print before processing
         print(f"\nProcessing {category} worksheet:")
         print("Columns:", df.columns.tolist())
-        print("Sample data before processing:")
-        print(df[['Ticker', 'Buy Trade', 'Sell Trade']].head())
         
         # Convert numeric columns
         numeric_columns = ['Buy Trade', 'Sell Trade']

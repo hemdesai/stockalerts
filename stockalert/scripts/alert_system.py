@@ -1,17 +1,11 @@
-import os
-import pandas as pd
-import sqlite3
-import yfinance as yf
+import os, time, sqlite3
+import pandas as pd, yfinance as yf, pytz
 from pathlib import Path
 from datetime import datetime
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
-from dotenv import load_dotenv # type: ignore
-import time  # Add this import at the top
-import pytz
-
-# Load environment variables
+from dotenv import load_dotenv
 load_dotenv()
 
 class AlertSystem:
@@ -20,244 +14,155 @@ class AlertSystem:
         self.db_path = self.root_dir / 'data' / 'stocks.db'
         
     def get_current_price(self, ticker):
-        """Get current price using yfinance with delay"""
         try:
-            time.sleep(0.05)  # Reduced delay
+            time.sleep(0.05)
             info = yf.Ticker(ticker).history(period="1d")
             if info.empty:
                 print(f"No data available for {ticker}")
                 return None
-            
-            current_price = info['Close'].iloc[-1]
-            return float(current_price)
+            return float(info['Close'].iloc[-1])
         except Exception as e:
             print(f"Error getting price for {ticker}: {str(e)}")
             return None
 
     def get_latest_signals(self):
-        """Get the trading signals from database"""
         try:
             conn = sqlite3.connect(str(self.db_path))
-            query = """
-            SELECT * FROM stocks 
-            ORDER BY Category, Ticker
-            """
+            query = "SELECT * FROM stocks ORDER BY Category, Ticker"
             df = pd.read_sql(query, conn)
             conn.close()
             return df
         except Exception as e:
             print(f"Error getting signals: {e}")
             return None
-
-    def generate_alerts(self, buffer_pct=3.0):
-        """Generate alerts based on trading signals with custom buffer"""
-        buffer = buffer_pct / 100
-        df = self.get_latest_signals()
+    
+    def generate_alerts(self, df=None, buffer_pct=3.0):
+        alerts = []  # ensure alerts list is always defined
         if df is None or df.empty:
-            return []
-
-        alerts = []
-        
+            df = self.get_latest_signals()
+            if df is None or df.empty:
+                return []
+            category_priority = {'ideas': 0, 'etfs': 1, 'digitalassets': 2, 'daily': 3}
+            df['category_priority'] = df['Category'].map(category_priority)
+            df = df.sort_values(['category_priority', 'Ticker']).drop('category_priority', axis=1)
+            
         for _, row in df.iterrows():
             current_price = self.get_current_price(row['Ticker'])
             if current_price is None:
                 continue
-
-            alert_data = {
+            buy_trade = row['Buy Trade']
+            sell_trade = row['Sell Trade']
+            sentiment = row['Sentiment'].upper()
+            alert = {
                 'ticker': row['Ticker'],
                 'category': row['Category'],
-                'sentiment': row['Sentiment'],
+                'sentiment': sentiment,
                 'name': row['Name'],
                 'current_price': current_price,
+                # also store the original trade values for use in the email narrative
+                'buy_trade': buy_trade,
+                'sell_trade': sell_trade,
                 'open_price': None,
-                'open_signal': None,
-                'open_pct': None,
                 'close_price': None,
-                'close_signal': None,
-                'close_pct': None
+                'action': None,
+                'profit': None
             }
-
-            if row['Sentiment'] == 'BULLISH':
-                # Buy signal check
-                buy_pct = (row['Buy Trade'] - current_price) / current_price * 100
-                if buy_pct > buffer_pct:
-                    alert_data.update({
-                        'open_price': row['Buy Trade'],
-                        'open_signal': 'Buy',
-                        'open_pct': buy_pct
-                    })
-
-                # Sell signal check
-                sell_pct = (current_price - row['Sell Trade']) / row['Sell Trade'] * 100
-                if sell_pct > buffer_pct:
-                    alert_data.update({
-                        'close_price': row['Sell Trade'],
-                        'close_signal': 'Sell',
-                        'close_pct': sell_pct
-                    })
-
-            elif row['Sentiment'] == 'BEARISH':
-                # Short signal check
-                short_pct = (current_price - row['Sell Trade']) / row['Sell Trade'] * 100
-                if short_pct > buffer_pct:
-                    alert_data.update({
-                        'open_price': row['Sell Trade'],
-                        'open_signal': 'Short',
-                        'open_pct': short_pct
-                    })
-
-                # Cover signal check
-                cover_pct = (row['Buy Trade'] - current_price) / current_price * 100
-                if cover_pct > buffer_pct:
-                    alert_data.update({
-                        'close_price': row['Buy Trade'],
-                        'close_signal': 'Cover',
-                        'close_pct': cover_pct
-                    })
-
-            # Only add to alerts if there's at least one signal
-            if alert_data['open_signal'] is not None or alert_data['close_signal'] is not None:
-                alerts.append(alert_data)
-
+            if sentiment == 'BULLISH':
+                if current_price >= sell_trade:
+                    profit = ((current_price - sell_trade) / sell_trade) * 100
+                    alert.update({'action': 'Sell',
+                                  'open_price': current_price,
+                                  'close_price': sell_trade,
+                                  'profit': profit})
+                elif current_price <= buy_trade:
+                    profit = ((buy_trade - current_price) / buy_trade) * 100
+                    alert.update({'action': 'Buy',
+                                  'open_price': current_price,
+                                  'close_price': buy_trade,
+                                  'profit': profit})
+            elif sentiment == 'BEARISH':
+                if current_price <= buy_trade:
+                    profit = ((sell_trade - current_price) / sell_trade) * 100
+                    alert.update({'action': 'Cover',
+                                  'open_price': current_price,
+                                  'close_price': sell_trade,
+                                  'profit': profit})
+                elif current_price > sell_trade:
+                    profit = ((current_price - sell_trade) / sell_trade) * 100
+                    alert.update({'action': 'Short',
+                                  'open_price': current_price,
+                                  'close_price': sell_trade,
+                                  'profit': profit})
+            if alert['action'] is not None:
+                alerts.append(alert)
         return alerts
 
     def format_email_body(self, alerts):
-        """Format alerts into HTML email body with improved styling"""
-        if not alerts:
-            return "<p>No trading signals triggered.</p>"
-        
-        # Add CSS styles
-        html = """
+        styles = """
         <style>
-            .alert-table {
-                border-collapse: collapse;
-                width: 100%;
-                max-width: 1200px;
-                margin: 20px auto;
-                background-color: #ffffff;
-                box-shadow: 0 1px 3px rgba(0,0,0,0.2);
-                font-family: Arial, sans-serif;
-            }
-            .alert-table th {
-                background-color: #f8f9fa;
-                color: #202124;
-                padding: 12px;
-                text-align: left;
-                font-weight: bold;
-                border-bottom: 2px solid #dee2e6;
-            }
-            .alert-table td {
-                padding: 10px;
-                border-bottom: 1px solid #dee2e6;
-            }
-            .alert-table tr:hover {
-                background-color: #f5f5f5;
-            }
-            .green { color: #28a745; }
-            .red { color: #dc3545; }
-            .header {
-                background-color: #f8f9fa;
-                padding: 20px;
-                margin-bottom: 20px;
-                border-radius: 5px;
-                text-align: center;
-            }
-            .timestamp {
-                color: #666;
-                font-size: 14px;
-                margin-top: 5px;
-            }
+            .alert-card { padding: 10px; margin: 5px 0; border-radius: 4px; }
+            .category-header { font-size: 18px; font-weight: bold; text-decoration: underline; margin: 20px 0 10px 0; }
+            .bullish { border-left: 4px solid #006400; background-color: #f0fff0; }
+            .bearish { border-left: 4px solid #8B0000; background-color: #fff0f0; }
+            .alert-text { margin: 5px 0; font-family: Arial, sans-serif; }
+            .category-divider { margin: 15px 0; border-top: 1px solid #eee; }
         </style>
         """
-        
-        # Add header with timestamp
-        est = pytz.timezone('US/Eastern')
-        current_time = datetime.now(est).strftime("%B %d, %Y %H:%M EST")
-        html += f"""
-        <div class="header">
-            <h2>Trading Alerts</h2>
-            <div class="timestamp">Generated on {current_time}</div>
-        </div>
-        """
-        
-        # Create table
-        html += '<table class="alert-table">'
-        html += """
-            <tr>
-                <th>Ticker</th>
-                <th>Category</th>
-                <th>Current</th>
-                <th>Open Price</th>
-                <th>Open Signal</th>
-                <th>Open %</th>
-                <th>Close Price</th>
-                <th>Close Signal</th>
-                <th>Close %</th>
-            </tr>
-        """
-        
-        for alert in alerts:
-            html += "<tr>"
-            html += f"<td><strong>{alert['ticker']}</strong></td>"
-            html += f"<td>{alert['category']}</td>"
-            html += f"<td>${alert['current_price']:.2f}</td>"
-            
-            # Open signals
-            if alert['open_signal']:
-                signal_color = 'green' if alert['open_signal'] in ['Buy', 'Cover'] else 'red'
-                html += f"<td>${alert['open_price']:.2f}</td>"
-                html += f"<td class='{signal_color}'>{alert['open_signal']}</td>"
-                html += f"<td>{alert['open_pct']:+.1f}%</td>"
-            else:
-                html += "<td>-</td><td>-</td><td>-</td>"
-            
-            # Close signals
-            if alert['close_signal']:
-                signal_color = 'green' if alert['close_signal'] in ['Buy', 'Cover'] else 'red'
-                html += f"<td>${alert['close_price']:.2f}</td>"
-                html += f"<td class='{signal_color}'>{alert['close_signal']}</td>"
-                html += f"<td>{alert['close_pct']:+.1f}%</td>"
-            else:
-                html += "<td>-</td><td>-</td><td>-</td>"
-            
-            html += "</tr>"
-        
-        html += "</table>"
+        html = styles
+        alerts_by_category = {}
+        for a in alerts:
+            cat = a.get('category', 'Uncategorized')
+            alerts_by_category.setdefault(cat, []).append(a)
+        alert_counter = 1
+        for category, cat_alerts in alerts_by_category.items():
+            html += f'<div class="category-header">{category.lower()}</div>'
+            for a in cat_alerts:
+                sentiment = a.get('sentiment', '')
+                ticker = a.get('ticker', '')
+                name = a.get('name', '')
+                current = a.get('current_price', 0)
+                action = a.get('action', '')
+                profit = a.get('profit', 0)
+                # For Sell and Short, use the stored buy_trade and sell_trade values
+                if action in ['Sell', 'Short']:
+                    open_val = a.get('buy_trade', 0)
+                    close_val = a.get('sell_trade', 0)
+                else:
+                    open_val = a.get('open_price', 0)
+                    close_val = a.get('close_price', 0)
+                # Label: 'gain' for bullish, 'profit' for bearish
+                label = 'gain' if sentiment == 'BULLISH' else 'profit'
+                profit_str = f"{'+' if profit>=0 else ''}{profit:.1f}%"
+                narrative = (f"{alert_counter}. {ticker} ({name}) at ${current:.2f} → {action} "
+                             f"(${open_val:.2f}-${close_val:.2f} {sentiment.lower()}) for {profit_str} {label}")
+                css_class = 'bullish' if sentiment == 'BULLISH' else 'bearish'
+                html += f'<div class="alert-card {css_class}"><p class="alert-text">{narrative}</p></div>'
+                alert_counter += 1
+            html += '<div class="category-divider"></div>'
         return html
 
     def send_email_alert(self, alerts):
-        """Send email with trading alerts"""
         try:
-            sender_email = os.getenv('EMAIL_SENDER')
-            sender_password = os.getenv('EMAIL_PASSWORD')
-            recipient_email = os.getenv('EMAIL_RECIPIENT')
-
-            # Get EST time
+            sender = os.getenv('EMAIL_SENDER')
+            password = os.getenv('EMAIL_PASSWORD')
+            recipient = os.getenv('EMAIL_RECIPIENT')
             est = pytz.timezone('US/Eastern')
-            est_time = datetime.now(est)
-            
-            # Format title with count and EST time
-            alert_count = len(alerts)
-            title = f"{alert_count} Trade Alert{'s' if alert_count != 1 else ''} - {est_time.strftime('%d/%m %H:%M')} EST"
-
+            now_est = datetime.now(est)
+            title = f"{len(alerts)} Trade Alert{'s' if len(alerts)!=1 else ''} - {now_est.strftime('%d/%m %H:%M')} EST"
             msg = MIMEMultipart('alternative')
             msg['Subject'] = title
-            msg['From'] = sender_email
-            msg['To'] = recipient_email
-
+            msg['From'] = sender
+            msg['To'] = recipient
             html_body = self.format_email_body(alerts)
             msg.attach(MIMEText(html_body, 'html'))
-
             with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-                server.login(sender_email, sender_password)
+                server.login(sender, password)
                 server.send_message(msg)
                 print("Alert email sent successfully!")
-
         except Exception as e:
             print(f"Error sending email: {e}")
 
     def run(self):
-        """Main function to run the alert system"""
         print("Starting Alert System...")
         alerts = self.generate_alerts()
         if alerts:
@@ -267,5 +172,4 @@ class AlertSystem:
             print("No alerts generated")
 
 if __name__ == "__main__":
-    alert_system = AlertSystem()
-    alert_system.run()
+    AlertSystem().run()
