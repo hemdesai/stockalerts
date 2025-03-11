@@ -1,13 +1,116 @@
-# Stock Trading Alert System
+# StockAlert
 
-A real-time stock trading alert system that monitors trading signals and generates alerts based on custom criteria.
+A comprehensive stock and digital assets tracking and alerting system that extracts data from emails, processes it, and provides actionable trading alerts.
 
 ## Features
-- Real-time price monitoring
-- Custom alert thresholds
-- Email notifications
-- Auto-refreshing dashboard
-- Google Sheets integration
+
+- **Gmail Extractor**: Automatically extracts financial data from emails with specific subjects
+  - Processes "RISK RANGE", "CRYPTO QUANT", and other financial data emails
+  - Uses Mistral OCR for image processing
+  - Handles stocks, ETFs, cryptocurrencies, and daily trading signals
+
+- **Data Validation**: Ensures data integrity and accuracy
+  - Maps ticker symbols to standard formats (e.g., BTC → BTC-USD)
+  - Validates price data against historical records
+
+- **Database Management**: SQLite-based storage for financial data
+  - Maintains historical records
+  - Optimized queries for alert generation
+
+- **Automated Scheduling**:
+  - Daily/weekly updates depending on asset type
+  - CSV data generation at ~9:00 AM ET
+  - Database import at 10:55 AM ET
+  - Alerts at 11:05 AM and 2:35 PM ET
+
+- **Email Notifications**:
+  - CSV update notifications with data summaries
+  - Trading alerts with buy/sell recommendations
+  - Profit potential calculations
+
+- **Dashboard**: Streamlit-based visualization of financial data
+
+## Project Structure
+
+```
+stockalert/
+├── dashboard.py               # Streamlit dashboard
+├── data/                      # Data storage directory
+├── env_template.txt           # Template for environment variables
+├── requirements.txt           # Python dependencies
+├── scripts/
+│   ├── alert_scheduler.py     # Scheduling for alerts
+│   ├── alert_system.py        # Alert generation logic
+│   ├── csv_notification_service.py  # Email notifications for CSV updates
+│   ├── data_import_scheduler.py     # Scheduling for data imports
+│   ├── db_manager.py          # Database operations
+│   ├── email_extractors/      # Email data extraction modules
+│   │   ├── crypto_extractor.py  # Cryptocurrency data extraction
+│   │   ├── etf_extractor.py     # ETF data extraction
+│   │   └── ideas_extractor.py   # Trading ideas extraction
+│   └── email_service.py       # Email sending service
+└── utils/
+    └── env_loader.py          # Environment variable management
+```
 
 ## Setup
-1. Clone the repository
+
+1. Clone the repository:
+   ```
+   git clone https://github.com/hemdesai/stockalert.git
+   cd stockalert
+   ```
+
+2. Install dependencies:
+   ```
+   pip install -r stockalert/requirements.txt
+   ```
+
+3. Set up environment variables:
+   ```
+   cp stockalert/env_template.txt stockalert/.env
+   ```
+   Edit the `.env` file with your specific configuration.
+
+4. Run the dashboard:
+   ```
+   cd stockalert
+   streamlit run dashboard.py
+   ```
+
+5. Set up scheduled tasks:
+   ```
+   python -m stockalert.scripts.data_import_scheduler --run-scheduler
+   ```
+
+## Environment Variables
+
+The following environment variables need to be set in the `.env` file:
+
+- `MISTRAL_API_KEY`: API key for Mistral OCR
+- `EMAIL_SENDER`: Gmail address for sending alerts
+- `EMAIL_PASSWORD`: App password for Gmail
+- `EMAIL_RECIPIENT`: Email address to receive alerts
+- `DATA_DIR`: Directory for data storage (default: "data")
+- `DB_PATH`: Path to SQLite database (default: "data/stocks.db")
+- `SCHEDULER_ENABLED`: Enable/disable scheduler (default: "true")
+- `CSV_IMPORT_TIME`: Time to import CSV data (default: "08:45")
+- `DB_IMPORT_TIME`: Time to import to database (default: "10:55")
+- `ALERT_TIMES`: Times to send alerts (default: "11:05,14:35")
+
+## Contributing
+
+1. Fork the repository
+2. Create your feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add some amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Acknowledgments
+
+- [Mistral AI](https://mistral.ai/) for OCR capabilities
+- [Streamlit](https://streamlit.io/) for dashboard visualization

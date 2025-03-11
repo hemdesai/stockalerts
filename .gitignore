@@ -1,0 +1,66 @@
+# Environment variables
+.env
+*.env
+
+# Service account credentials
+service_account.json
+*service_account*.json
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environment
+venv/
+ENV/
+env/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+
+# Data files (consider if you want to include these in the repo)
+stockalert/data/*.csv
+stockalert/data/*.db
+stockalert/data/temp/
+*.csv
+*.db
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Batch and script files for local deployment
+*.bat
+*.ps1
+setup_scheduler_task.ps1
+start_scheduler.bat

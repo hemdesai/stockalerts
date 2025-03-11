@@ -1,15 +1,26 @@
-streamlit
-pandas
-yfinance
-google-auth==2.27.0
-python-dotenv==1.0.1
+# Core dependencies
+streamlit==1.32.0
+pandas==2.2.1
+numpy==1.26.4
+yfinance==0.2.37
 SQLAlchemy==2.0.25
-google-api-python-client
-google-auth-httplib2
-google-auth-oauthlib 
-gspread
-oauth2client
-python-dotenv
-pytz
-plotly
-numpy
+plotly==5.18.0
+schedule==1.2.1
+pytz==2024.1
+
+# Email and data processing
+python-dotenv==1.0.1
+requests==2.31.0
+beautifulsoup4==4.13.0
+pillow==10.2.0
+fuzzywuzzy==0.18.0
+mistralai==1.5.1
+pydantic==2.9.0
+
+# Google integration
+google-auth==2.27.0
+google-api-python-client==2.117.0
+google-auth-httplib2==0.1.1
+google-auth-oauthlib==1.2.0
+gspread==6.0.1
+oauth2client==4.1.3

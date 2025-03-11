@@ -1,12 +1,21 @@
-import os, time, sqlite3
-import pandas as pd, yfinance as yf, pytz
+import os
+import pandas as pd
+import sqlite3
+import logging
+from datetime import datetime, timedelta
+import pytz
 from pathlib import Path
-from datetime import datetime
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
-load_dotenv()
+
+# Use the centralized environment loader
+from stockalert.utils.env_loader import get_env, load_environment
+from stockalert.scripts.email_service import EmailService
+
+# Remove redundant environment loading since we're using the centralized loader
+# load_dotenv()
 
 class AlertSystem:
     def __init__(self):
@@ -28,7 +37,18 @@ class AlertSystem:
     def get_latest_signals(self):
         try:
             conn = sqlite3.connect(str(self.db_path))
-            query = "SELECT * FROM stocks ORDER BY Category, Ticker"
+            
+            # Updated query to use our current database structure
+            query = """
+            SELECT a.ticker as Ticker, a.name as Name, a.category as Category, 
+                   p.sentiment as Sentiment, p.buy_trade as 'Buy Trade', 
+                   p.sell_trade as 'Sell Trade', p.current_price as 'Current Price'
+            FROM assets a
+            JOIN price_data p ON a.id = p.asset_id
+            WHERE p.date = (SELECT MAX(date) FROM price_data)
+            ORDER BY a.category, a.ticker
+            """
+            
             df = pd.read_sql(query, conn)
             conn.close()
             return df
@@ -108,15 +128,26 @@ class AlertSystem:
             .category-divider { margin: 15px 0; border-top: 1px solid #eee; }
         </style>
         """
-        html = styles
+        
+        # Define category priority
+        category_priority = {'ideas': 0, 'etfs': 1, 'digitalassets': 2, 'daily': 3}
+        
+        # Group alerts by category and sort by priority
         alerts_by_category = {}
         for a in alerts:
             cat = a.get('category', 'Uncategorized')
             alerts_by_category.setdefault(cat, []).append(a)
+        
+        # Sort categories by priority
+        sorted_categories = sorted(alerts_by_category.keys(), 
+                                 key=lambda x: category_priority.get(x.lower(), 999))
+        
+        # Generate HTML with sorted categories
+        html = styles
         alert_counter = 1
-        for category, cat_alerts in alerts_by_category.items():
+        for category in sorted_categories:
             html += f'<div class="category-header">{category.lower()}</div>'
-            for a in cat_alerts:
+            for a in alerts_by_category[category]:
                 sentiment = a.get('sentiment', '')
                 ticker = a.get('ticker', '')
                 name = a.get('name', '')
@@ -134,7 +165,7 @@ class AlertSystem:
                 label = 'gain' if sentiment == 'BULLISH' else 'profit'
                 profit_str = f"{'+' if profit>=0 else ''}{profit:.1f}%"
                 narrative = (f"{alert_counter}. {ticker} ({name}) at ${current:.2f} → {action} "
-                             f"(${open_val:.2f}-${close_val:.2f} {sentiment.lower()}) for {profit_str} {label}")
+                             f"(${a.get('buy_trade', 0):.2f}-${a.get('sell_trade', 0):.2f} {sentiment.lower()}) for {profit_str} {label}")
                 css_class = 'bullish' if sentiment == 'BULLISH' else 'bearish'
                 html += f'<div class="alert-card {css_class}"><p class="alert-text">{narrative}</p></div>'
                 alert_counter += 1
@@ -143,24 +174,23 @@ class AlertSystem:
 
     def send_email_alert(self, alerts):
         try:
-            sender = os.getenv('EMAIL_SENDER')
-            password = os.getenv('EMAIL_PASSWORD')
-            recipient = os.getenv('EMAIL_RECIPIENT')
-            est = pytz.timezone('US/Eastern')
-            now_est = datetime.now(est)
-            title = f"{len(alerts)} Trade Alert{'s' if len(alerts)!=1 else ''} - {now_est.strftime('%d/%m %H:%M')} EST"
-            msg = MIMEMultipart('alternative')
-            msg['Subject'] = title
-            msg['From'] = sender
-            msg['To'] = recipient
-            html_body = self.format_email_body(alerts)
-            msg.attach(MIMEText(html_body, 'html'))
-            with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
-                server.login(sender, password)
-                server.send_message(msg)
+            # Use the new EmailService for sending alerts
+            email_service = EmailService()
+            
+            # Send email alerts
+            result = email_service.send_alert_email(alerts)
+            
+            if result:
                 print("Alert email sent successfully!")
+                logging.info(f"Alert email sent successfully with {len(alerts)} alerts")
+            else:
+                print("Failed to send alert email")
+                logging.error("Failed to send alert email")
+                
         except Exception as e:
-            print(f"Error sending email: {e}")
+            error_msg = f"Error sending email: {e}"
+            print(error_msg)
+            logging.error(error_msg)
 
     def run(self):
         print("Starting Alert System...")
