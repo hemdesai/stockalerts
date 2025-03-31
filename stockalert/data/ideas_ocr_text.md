@@ -1,3 +1,0 @@
-# HEDGEYE 
-
-## Investing Ideas

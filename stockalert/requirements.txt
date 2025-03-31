@@ -14,7 +14,7 @@ requests==2.31.0
 beautifulsoup4==4.13.0
 pillow==10.2.0
 fuzzywuzzy==0.18.0
-mistralai==1.5.1
+mistralai
 pydantic==2.9.0
 
 # Google integration
@@ -24,3 +24,8 @@ google-auth-httplib2==0.1.1
 google-auth-oauthlib==1.2.0
 gspread==6.0.1
 oauth2client==4.1.3
+
+# MCP server dependencies
+fastapi==0.109.2
+uvicorn==0.27.1
+psutil==7.0.0

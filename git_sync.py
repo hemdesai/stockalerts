@@ -81,7 +81,7 @@ def generate_commit_message(changed_files):
         elif file_type == "directory":
             parts.append(f"Update {count} directories")
         else:
-            parts.append(f"Update {count} {file_type} files")
+            parts.append(f"Update {count} {file_type[1:] if file_type.startswith('.') else file_type} files")
     
     # Join parts
     if parts:
@@ -91,22 +91,20 @@ def generate_commit_message(changed_files):
     
     # Add timestamp
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-    return f"{message} [{timestamp}]"
+    return f"{message} ({timestamp})"  # Use parentheses instead of square brackets
 
 def commit_changes(repo_path, message=None, files=None):
     """Commit changes to the repository"""
-    if files is None:
-        # Add all changes
-        run_command("git add .", cwd=repo_path)
-    else:
-        # Add specific files
-        for _, file in files:
-            run_command(f'git add "{file}"', cwd=repo_path)
+    # Add all untracked files first
+    run_command("git add .", cwd=repo_path)
     
     # Generate commit message if not provided
     if not message:
         changed_files = get_changed_files(repo_path)
         message = generate_commit_message(changed_files)
+    
+    # Escape quotes in the commit message
+    message = message.replace('"', '\\"')
     
     # Commit with the message
     result = run_command(f'git commit -m "{message}"', cwd=repo_path)
@@ -131,7 +129,7 @@ def main():
     # Check if there are changes to commit
     if not has_changes(repo_path):
         print("No changes to commit.")
-        return
+        return 0
     
     # Get changed files
     changed_files = get_changed_files(repo_path)
@@ -147,22 +145,25 @@ def main():
         commit_message = args.m
     
     # Commit changes
-    commit_result = commit_changes(repo_path, message=commit_message, files=changed_files)
+    commit_result = commit_changes(repo_path, message=commit_message)
     if commit_result:
         print(f"Committed changes: {commit_result}")
+        
+        # Push changes if requested
+        if not args.no_push:
+            push_result = push_changes(repo_path)
+            if push_result:
+                print(f"Pushed changes: {push_result}")
+                return 0
+            else:
+                print("Failed to push changes.")
+                return 1
+        else:
+            print("Skipping push as requested.")
+            return 0
     else:
         print("Failed to commit changes.")
-        return
-    
-    # Push changes if requested
-    if not args.no_push:
-        push_result = push_changes(repo_path)
-        if push_result:
-            print(f"Pushed changes: {push_result}")
-        else:
-            print("Failed to push changes.")
-    else:
-        print("Skipping push as requested.")
+        return 1
 
 if __name__ == "__main__":
     main()

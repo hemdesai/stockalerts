@@ -22,17 +22,24 @@ def main():
     # Build the command
     command = [sys.executable, str(script_path)]
     if message:
+        # Escape quotes in the message
+        message = message.replace('"', '\\"')
         command.extend(["-m", message])
     
     # Run the command
     try:
-        subprocess.run(command, check=True)
+        result = subprocess.run(command, check=True, capture_output=True, text=True)
+        print(result.stdout)
+        if "Failed to commit changes" in result.stdout or "Failed to push changes" in result.stdout:
+            print("\nRepository sync failed. See above for details.")
+            return 1
         print("\nRepository sync completed successfully!")
-    except subprocess.CalledProcessError:
+        return 0
+    except subprocess.CalledProcessError as e:
+        print(e.stdout)
+        print(e.stderr)
         print("\nError syncing repository. See above for details.")
         return 1
-    
-    return 0
 
 if __name__ == "__main__":
     sys.exit(main())

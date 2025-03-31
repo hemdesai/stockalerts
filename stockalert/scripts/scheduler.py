@@ -24,14 +24,14 @@ def run_extraction():
         # Run ideas extractor
         logging.info("Running ideas extractor")
         subprocess.run(
-            ["python", "-m", "stockalert.scripts.email_extractors.ideas_extractor"],
+            ["python", "-m", "stockalert.scripts.extractors.ideas_extractor"],
             check=True
         )
         
         # Run crypto extractor
         logging.info("Running crypto extractor")
         subprocess.run(
-            ["python", "-m", "stockalert.scripts.email_extractors.crypto_extractor"],
+            ["python", "-m", "stockalert.scripts.extractors.crypto_extractor"],
             check=True
         )
         
@@ -62,15 +62,10 @@ def main():
     logging.info("Starting scheduler")
     
     # Schedule daily extraction at 11:05 AM Eastern Time
-    schedule.every().day.at("11:05").do(
+    schedule.every().day.at("8:35").do(
         lambda: run_extraction() if is_trading_day() else logging.info("Not a trading day, skipping extraction")
     )
-    
-    # Schedule daily extraction at 2:35 PM Eastern Time
-    schedule.every().day.at("14:35").do(
-        lambda: run_extraction() if is_trading_day() else logging.info("Not a trading day, skipping extraction")
-    )
-    
+        
     logging.info("Scheduler started, waiting for scheduled times")
     
     # Run the scheduler

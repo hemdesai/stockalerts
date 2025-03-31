@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 from pydantic import BaseModel
 import pandas as pd
-from mistralai import Mistral, ImageURLChunk
+from mistralai import Mistral
 from datetime import datetime
 import base64
 import re
@@ -34,14 +34,11 @@ class IdeasEmailExtractor(BaseEmailExtractor):
     def __init__(self):
         super().__init__()
         
-        # Get Mistral API key from environment variables
+        # Initialize Mistral client for OCR and parsing
         mistral_api_key = get_env('MISTRAL_API_KEY')
         if not mistral_api_key:
-            print("Warning: MISTRAL_API_KEY not found in environment variables.")
-            print(f"Checked .env file at: {Path(__file__).parent.parent.parent.parent / '.env'}")
-            print("Please ensure the .env file exists and contains MISTRAL_API_KEY.")
+            raise ValueError("MISTRAL_API_KEY environment variable not set")
         
-        # Initialize Mistral client
         self.mistral_client = Mistral(api_key=mistral_api_key)
     
     def process_image(self, image_path):
@@ -62,15 +59,23 @@ class IdeasEmailExtractor(BaseEmailExtractor):
             
             # Process OCR to get markdown output
             print("Processing with Mistral OCR...")
-            ocr_response = self.mistral_client.ocr.process(
-                document=ImageURLChunk(image_url=data_url), 
-                model="mistral-ocr-latest"
-            )
-            ocr_md = ocr_response.pages[0].markdown
-            
-            # Print a sample of the OCR text for debugging
-            print("\nSample OCR Text (first 500 chars):")
-            print(ocr_md[:500])
+            try:
+                # Use the ocr.process method directly as in etf_extractor.py
+                from mistralai import ImageURLChunk
+                
+                ocr_response = self.mistral_client.ocr.process(
+                    document=ImageURLChunk(image_url=data_url), 
+                    model="mistral-ocr-latest"
+                )
+                ocr_md = ocr_response.pages[0].markdown
+                print(f"Successfully extracted text with mistral-ocr-latest")
+                print("\nRaw OCR Text:")
+                print(ocr_md[:500] + "..." if len(ocr_md) > 500 else ocr_md)
+                
+            except Exception as e:
+                print(f"Error with OCR processing: {str(e)}")
+                print("OCR processing failed. Unable to extract text from image.")
+                return []
             
             # Try manual parsing first
             ideas_data = self.manual_parse_ocr_text(ocr_md)
