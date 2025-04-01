@@ -147,9 +147,9 @@ class CryptoEmailExtractor:
             elif "HEDGEYE RISK RANGES" in ocr_md:
                 print("Found RISK RANGES section")
                 assets = self.parse_risk_ranges_section(ocr_md)
-            # Check if this has a table with TICKER, Buy Trade, Sell Trade columns (crypto2.png format)
-            elif "TICKER" in ocr_md and "Buy Trade" in ocr_md and "Sell Trade" in ocr_md:
-                print("Detected crypto2.png format with TICKER/Buy Trade/Sell Trade table")
+            # Check if this has a table with TICKER, My Trade, Self Trade columns (crypto2.png format)
+            elif "| TICKER |" in ocr_md and "| My Trade |" in ocr_md and "| Self Trade |" in ocr_md:
+                print("Detected PRIOR DAY CLOSE format with TICKER/My Trade/Self Trade table")
                 assets = self.parse_prior_day_close_section(ocr_md)
             else:
                 print("Could not determine image type from OCR text")
@@ -284,67 +284,97 @@ class CryptoEmailExtractor:
             # Find the header line to identify column positions
             header_line_idx = -1
             for i, line in enumerate(lines):
-                if "TICKER" in line and ("Buy Trade" in line or "BUY TRADE" in line or "Buy" in line) and ("Sell Trade" in line or "SELL TRADE" in line or "Sell" in line):
+                if "TICKER" in line and "Buy Trade" in line and "Sell Trade" in line:
                     # This might be a table header with a ticker
                     header_line_idx = i
                     print(f"Found header line at index {header_line_idx}: {line}")
                     break
             
-            if header_line_idx >= 0:
-                # Process each line after the header
-                for i in range(header_line_idx + 1, len(lines)):
-                    line = lines[i].strip()
-                    if not line or line.startswith('#'):
-                        continue
+            if header_line_idx == -1:
+                print("Could not find table header in DERIVATIVE EXPOSURES section")
+                return []
+            
+            # Skip the header and separator lines
+            start_index = header_line_idx + 2  # Skip header and separator line
+            
+            # Process the table rows
+            for i in range(start_index, len(lines)):
+                line = lines[i].strip()
+                
+                # Skip empty lines or lines without pipe separators
+                if not line or '|' not in line:
+                    continue
+                
+                print(f"Processing table row: {line}")
+                
+                # Split the line by pipe separators
+                parts = [part.strip() for part in line.split('|')]
+                
+                # Remove empty parts
+                parts = [part for part in parts if part]
+                
+                if len(parts) < 3:
+                    continue
+                
+                # The first part should be the ticker
+                ticker = parts[0].strip()
+                
+                # Skip if this isn't a valid ticker
+                if not re.match(r'^[A-Z]{2,5}$', ticker):
+                    continue
+                
+                print(f"Found ticker: {ticker}")
+                
+                # Try to extract buy and sell values
+                buy_trade = None
+                sell_trade = None
+                sentiment = "BEARISH"  # Default sentiment
+                
+                # Extract numbers from parts
+                try:
+                    # In this format, typically:
+                    # parts[0] = TICKER
+                    # parts[1] = Price
+                    # parts[2] = Buy Trade
+                    # parts[3] = Sell Trade
+                    # parts[6] = TREND SIGNAL (last part)
                     
-                    # Try to extract ticker, buy trade, sell trade, and trend signal values
-                    # First, check if this is a row with a ticker (look for all caps 2-5 letter word)
-                    ticker_match = re.search(r'\b([A-Z]{2,5})\b', line)
-                    if not ticker_match:
-                        continue
+                    # Extract buy trade from part 2
+                    buy_match = re.search(r'(\d+\.?\d*)', parts[2])
+                    if buy_match:
+                        buy_trade = float(buy_match.group(1).replace(',', ''))
                     
-                    ticker = ticker_match.group(1)
-                    print(f"Processing line for ticker {ticker}: {line}")
+                    # Extract sell trade from part 3
+                    sell_match = re.search(r'(\d+\.?\d*)', parts[3])
+                    if sell_match:
+                        sell_trade = float(sell_match.group(1).replace(',', ''))
                     
-                    # Extract buy trade and sell trade values
-                    # Look for patterns like "45.17" and "50.86" in the line
-                    values = re.findall(r'(\d+[,\.]?\d*)', line)
+                    # Extract sentiment from the last part
+                    if len(parts) >= 7:
+                        trend_part = parts[6]
+                        if "BEARISH" in trend_part:
+                            sentiment = "BEARISH"
+                        elif "BULLISH" in trend_part:
+                            sentiment = "BULLISH"
+                        elif "NEUTRAL" in trend_part:
+                            sentiment = "NEUTRAL"
+                except (IndexError, ValueError) as e:
+                    print(f"Error extracting values for {ticker}: {e}")
+                    continue
+                
+                # If we found both buy and sell values, add this asset
+                if buy_trade is not None and sell_trade is not None:
+                    # Map the ticker to the standard format if needed
+                    mapped_ticker = self.ticker_mappings.get(ticker, ticker)
                     
-                    if len(values) >= 3:  # We need at least price, buy, sell
-                        try:
-                            # The format is typically: TICKER Price Buy Sell ...
-                            # If we have exactly 3 numbers, they are likely price, buy, sell
-                            if len(values) == 3:
-                                price = float(values[0])
-                                buy_trade = float(values[1])
-                                sell_trade = float(values[2])
-                            # If we have more than 3, the first is price, second is buy, third is sell
-                            else:
-                                price = float(values[0])
-                                buy_trade = float(values[1])
-                                sell_trade = float(values[2])
-                            
-                            # Extract sentiment (NEUTRAL, BULLISH, or BEARISH)
-                            sentiment = "BEARISH"  # Default
-                            if "NEUTRAL" in line:
-                                sentiment = "NEUTRAL"
-                            elif "BULLISH" in line:
-                                sentiment = "BULLISH"
-                            elif "BEARISH" in line:
-                                sentiment = "BEARISH"
-                            elif "REARISK" in line:  # Handle "REARISK" typo in OCR
-                                sentiment = "BEARISH"
-                            
-                            print(f"Extracted {ticker}, sentiment: {sentiment}, buy: {buy_trade}, sell: {sell_trade}")
-                            assets.append({
-                                "ticker": ticker,
-                                "sentiment": sentiment,
-                                "buy_trade": buy_trade,
-                                "sell_trade": sell_trade,
-                                "category": "digitalassets"
-                            })
-                        except (ValueError, IndexError) as e:
-                            print(f"Error processing values for {ticker}: {e}")
+                    assets.append({
+                        "ticker": mapped_ticker,
+                        "sentiment": sentiment,
+                        "buy_trade": buy_trade,
+                        "sell_trade": sell_trade,
+                        "category": "digitalassets"
+                    })
+                    print(f"Added {ticker} with buy={buy_trade}, sell={sell_trade}, sentiment={sentiment}")
         
         print(f"Parsed {len(assets)} assets from OCR text")
         return assets
@@ -438,99 +468,74 @@ class CryptoEmailExtractor:
 
     def parse_prior_day_close_section(self, ocr_md):
         """Parse the Prior Day Close section from OCR text (crypto2.png format)"""
-        print("Parsing Prior Day Close section...")
+        print("Parsing PRIOR DAY CLOSE section...")
         assets = []
         
         # Split the OCR text into lines
         lines = ocr_md.split('\n')
         
-        # Find the table header line
-        header_index = -1
+        # Find the exact header line
+        header_line_idx = -1
         for i, line in enumerate(lines):
-            if '|' in line and "TICKER" in line and "Price" in line and "Buy Trade" in line and "Sell Trade" in line:
-                header_index = i
-                print(f"Found table header at line {i}: {line}")
+            # Check for the exact header format
+            if ("| TICKER |" in line and 
+                "| Price |" in line and 
+                "| My Trade |" in line and 
+                "| Self Trade |" in line and 
+                "| UPSIDE |" in line and 
+                "| DOWNSIDE |" in line and 
+                "| TREND SIGNAL |" in line):
+                header_line_idx = i
+                print(f"Found exact table header at line {i}")
                 break
         
-        if header_index == -1:
-            print("Could not find table header in Prior Day Close section")
-            return []
-        
-        # Skip the header and separator lines
-        start_index = header_index + 2  # Skip header and separator line
-        
-        # Process the table rows
-        for i in range(start_index, len(lines)):
-            line = lines[i].strip()
-            
-            # Skip empty lines or lines without pipe separators
-            if not line or '|' not in line:
-                continue
-            
-            print(f"Processing table row: {line}")
-            
-            # Split the line by pipe separators
-            parts = [part.strip() for part in line.split('|')]
-            
-            # Remove empty parts
-            parts = [part for part in parts if part]
-            
-            if len(parts) < 4:  # Need at least ticker, price, buy, sell
-                continue
-            
-            # The first part should be the ticker
-            ticker = parts[0].strip()
-            
-            # Skip if this isn't a valid ticker
-            if not re.match(r'^[A-Z]{2,5}$', ticker):
-                continue
-            
-            print(f"Found ticker: {ticker}")
-            
-            # Try to extract buy and sell values
-            try:
-                # In this format, typically:
-                # parts[0] = TICKER
-                # parts[1] = Price
-                # parts[2] = Buy Trade
-                # parts[3] = Sell Trade
-                # parts[6] = TREND SIGNAL (last part)
+        if header_line_idx >= 0:
+            # Process each line after the header
+            for i in range(header_line_idx + 1, len(lines)):
+                line = lines[i].strip()
+                if not line or line.startswith('#'):
+                    continue
                 
-                # Extract buy trade from part 2
-                buy_trade = float(re.search(r'(\d+\.?\d*)', parts[2]).group(1).replace(',', ''))
+                # Split the line by | characters to get the columns
+                parts = [part.strip() for part in line.split('|') if part.strip()]
                 
-                # Extract sell trade from part 3
-                sell_trade = float(re.search(r'(\d+\.?\d*)', parts[3]).group(1).replace(',', ''))
+                # Skip if we don't have enough columns
+                if len(parts) < 7:
+                    continue
                 
-                # Extract sentiment from the last part (TREND SIGNAL)
-                sentiment = "BEARISH"  # Default sentiment
-                if len(parts) >= 7:
-                    trend_part = parts[6]
-                    if "BEARISH" in trend_part:
-                        sentiment = "BEARISH"
-                    elif "BULLISH" in trend_part:
+                try:
+                    # Extract ticker - should be first column
+                    ticker = parts[0]
+                    
+                    # Extract price - second column
+                    price = float(parts[1].replace(',', ''))
+                    
+                    # Extract buy trade (My Trade) - third column
+                    buy_trade = float(parts[2].replace(',', ''))
+                    
+                    # Extract sell trade (Self Trade) - fourth column
+                    sell_trade = float(parts[3].replace(',', ''))
+                    
+                    # Extract sentiment from the last column
+                    sentiment = "BEARISH"  # Default
+                    if "BULLISH" in parts[-1].upper():
                         sentiment = "BULLISH"
-                    elif "NEUTRAL" in trend_part:
+                    elif "NEUTRAL" in parts[-1].upper():
                         sentiment = "NEUTRAL"
-                
-                # Map the ticker to the standard format if needed
-                mapped_ticker = self.ticker_mappings.get(ticker, ticker)
-                
-                # Add to assets list
-                assets.append({
-                    "ticker": mapped_ticker,
-                    "sentiment": sentiment,
-                    "buy_trade": buy_trade,
-                    "sell_trade": sell_trade,
-                    "category": "digitalassets"
-                })
-                print(f"Added {ticker} with buy={buy_trade}, sell={sell_trade}, sentiment={sentiment}")
-                
-            except (IndexError, ValueError, AttributeError) as e:
-                print(f"Error extracting values for {ticker}: {e}")
-                continue
+                    
+                    print(f"Extracted {ticker}, sentiment: {sentiment}, buy: {buy_trade}, sell: {sell_trade}")
+                    assets.append({
+                        "ticker": ticker,
+                        "sentiment": sentiment,
+                        "buy_trade": buy_trade,
+                        "sell_trade": sell_trade,
+                        "category": "digitalassets"
+                    })
+                except (ValueError, IndexError) as e:
+                    print(f"Error processing line: {e}")
+                    continue
         
-        print(f"Parsed {len(assets)} assets from Prior Day Close section")
+        print(f"Extracted {len(assets)} assets from PRIOR DAY CLOSE section")
         return assets
 
     def parse_derivative_exposures_section(self, ocr_md):

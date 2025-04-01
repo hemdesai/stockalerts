@@ -139,7 +139,8 @@ class AlertSystem:
             
             # Check for stale prices (older than 24 hours)
             if 'Last_Price_Update' in df_with_prices.columns:
-                df_with_prices['Last_Price_Update'] = pd.to_datetime(df_with_prices['Last_Price_Update'])
+                df_with_prices = df_with_prices.copy()
+                df_with_prices.loc[:, 'Last_Price_Update'] = pd.to_datetime(df_with_prices['Last_Price_Update'])
                 now = datetime.now()
                 df_with_prices = df_with_prices[
                     df_with_prices['Last_Price_Update'] > (now - timedelta(hours=24))

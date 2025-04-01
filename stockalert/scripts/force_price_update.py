@@ -14,6 +14,8 @@ import time
 import random
 import subprocess
 import pandas as pd
+import yfinance as yf
+from tqdm import tqdm
 
 # Add the project root to the Python path
 project_root = str(Path(__file__).parent.parent.parent)
@@ -21,7 +23,6 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from stockalert.utils.env_loader import load_environment
-import yfinance as yf
 
 # Set up logging
 logging.basicConfig(
@@ -34,84 +35,29 @@ logging.basicConfig(
 )
 logger = logging.getLogger("PriceUpdate")
 
-def get_current_session():
-    """Determine if current time is AM or PM session"""
-    now = datetime.now(pytz.timezone('America/New_York'))
-    if now.hour < 12:
-        return "AM"
-    return "PM"
-
-def update_ticker_names(conn, cursor):
-    """Update ticker names from yfinance"""
-    logger.info("Updating ticker names...")
-    
-    # Get all tickers from the database
-    cursor.execute("SELECT ticker FROM stocks")
-    tickers = [row[0] for row in cursor.fetchall()]
-    
-    if not tickers:
-        logger.error("No tickers found in database")
-        return
-    
-    # Process tickers in batches to avoid rate limiting
-    batch_size = 3
-    ticker_batches = [tickers[i:i+batch_size] for i in range(0, len(tickers), batch_size)]
-    
-    total_updated = 0
-    
-    for batch_idx, batch in enumerate(ticker_batches):
-        logger.info(f"Processing name update batch {batch_idx+1}/{len(ticker_batches)} ({len(batch)} tickers)")
+def update_price(ticker, session):
+    """Update price for a specific ticker and session"""
+    try:
+        # Get current price from Yahoo Finance
+        ticker_obj = yf.Ticker(ticker)
+        info = ticker_obj.info
         
-        try:
-            for ticker in batch:
-                max_retries = 3
-                retry_delay = 5
-                
-                for retry in range(max_retries):
-                    try:
-                        # Get ticker info from yfinance
-                        ticker_obj = yf.Ticker(ticker)
-                        info = ticker_obj.info
-                        
-                        # Get the name (longName or shortName)
-                        name = info.get('longName', info.get('shortName', ticker))
-                        
-                        # Update name in database
-                        cursor.execute(
-                            "UPDATE stocks SET name = ? WHERE ticker = ?",
-                            (name, ticker)
-                        )
-                        
-                        logger.info(f"Updated name for {ticker}: {name}")
-                        total_updated += 1
-                        
-                        # Longer delay between individual ticker requests
-                        time.sleep(random.uniform(3, 5))
-                        break  # Success, exit retry loop
-                        
-                    except Exception as e:
-                        if "Rate limited" in str(e) and retry < max_retries - 1:
-                            # Exponential backoff for rate limiting
-                            wait_time = retry_delay * (2 ** retry)
-                            logger.warning(f"Rate limit hit for {ticker}, retrying in {wait_time} seconds (attempt {retry+1}/{max_retries})")
-                            time.sleep(wait_time)
-                        else:
-                            logger.error(f"Error updating name for {ticker}: {e}")
-                            break  # Exit retry loop for other errors
-            
-            # Commit changes after each batch
-            conn.commit()
-            
-        except Exception as e:
-            logger.error(f"Error processing name update batch: {e}")
+        # Get the appropriate price based on session
+        if session == 'AM':
+            price = info.get('regularMarketPrice') or info.get('currentPrice')
+        else:  # PM
+            price = info.get('regularMarketPreviousClose')
         
-        # Add longer delay between batches to avoid rate limiting
-        if batch_idx < len(ticker_batches) - 1:
-            delay = random.uniform(20, 30)
-            logger.info(f"Waiting {delay:.1f} seconds before next name update batch...")
-            time.sleep(delay)
-    
-    logger.info(f"Updated names for {total_updated} tickers")
+        if price is None:
+            logger.warning(f"No price found for {ticker} in {session} session")
+            return False
+            
+        logger.info(f"Updated {ticker} {session} price to {price}")
+        return True
+        
+    except Exception as e:
+        logger.error(f"Error updating price for {ticker}: {str(e)}")
+        return False
 
 def update_prices(conn, cursor, session):
     """Update prices from yfinance for the specified session"""
@@ -139,48 +85,19 @@ def update_prices(conn, cursor, session):
         for batch_idx, batch in enumerate(ticker_batches):
             logger.info(f"Processing price update batch {batch_idx+1}/{len(ticker_batches)} ({len(batch)} tickers)")
             
-            # Get prices from Yahoo Finance
-            try:
-                # Join tickers with space for yfinance
-                ticker_str = " ".join(batch)
-                data = yf.download(ticker_str, period="1d", interval="1m", progress=False)
-                
-                # If only one ticker, data structure is different
-                if len(batch) == 1:
-                    if not data.empty:
-                        ticker = batch[0]
-                        price = data['Close'].iloc[-1]
-                        
-                        # Update price in database
-                        cursor.execute(
-                            f"UPDATE stocks SET {session}_Price = ?, Last_Price_Update = ? WHERE ticker = ?",
-                            (price, eastern_time, ticker)
-                        )
-                        
-                        logger.info(f"Updated {session}_Price for {ticker}: ${price:.2f}")
-                        total_updated += 1
-                        
-                        # Longer delay between individual ticker requests
-                        time.sleep(random.uniform(3, 5))
-                else:
-                    # Multiple tickers
-                    if 'Close' in data.columns:
-                        last_prices = data['Close'].iloc[-1]
-                        
-                        for ticker in batch:
-                            if ticker in last_prices:
-                                price = last_prices[ticker]
-                                
-                                cursor.execute(
-                                    f"UPDATE stocks SET {session}_Price = ?, Last_Price_Update = ? WHERE ticker = ?",
-                                    (price, eastern_time, ticker)
-                                )
-                                
-                                logger.info(f"Updated {session}_Price for {ticker}: ${price:.2f}")
-                                total_updated += 1
-            
-            except Exception as e:
-                logger.error(f"Error getting prices for batch {batch}: {e}")
+            for ticker in batch:
+                if update_price(ticker, session):
+                    # Update price in database
+                    cursor.execute(
+                        f"UPDATE stocks SET {session}_Price = ?, Last_Price_Update = ? WHERE ticker = ?",
+                        (yf.Ticker(ticker).info.get('currentPrice'), eastern_time, ticker)
+                    )
+                    
+                    logger.info(f"Updated {session}_Price for {ticker}")
+                    total_updated += 1
+                    
+                    # Longer delay between individual ticker requests
+                    time.sleep(random.uniform(3, 5))
             
             # Commit changes after each batch
             conn.commit()
@@ -191,12 +108,9 @@ def update_prices(conn, cursor, session):
                 logger.info(f"Waiting {delay:.1f} seconds before next batch...")
                 time.sleep(delay)
     
-    except KeyboardInterrupt:
-        logger.warning("Price update interrupted by user. Saving progress...")
-        conn.commit()
-        logger.info(f"Updated {session}_Price for {total_updated} tickers before interruption")
-        return total_updated
-    
+    except Exception as e:
+        logger.error(f"Error updating prices: {e}")
+        
     logger.info(f"Updated {session}_Price for {total_updated} tickers")
     return total_updated
 
@@ -241,7 +155,76 @@ def force_price_update(session=None, update_names=False, run_alerts=True, should
     
     # Update ticker names if requested (typically only in AM session)
     if update_names:
-        update_ticker_names(conn, cursor)
+        # Update ticker names from yfinance
+        logger.info("Updating ticker names...")
+        
+        # Get all tickers from the database
+        cursor.execute("SELECT ticker FROM stocks")
+        tickers = [row[0] for row in cursor.fetchall()]
+        
+        if not tickers:
+            logger.error("No tickers found in database")
+            return
+        
+        # Process tickers in batches to avoid rate limiting
+        batch_size = 3
+        ticker_batches = [tickers[i:i+batch_size] for i in range(0, len(tickers), batch_size)]
+        
+        total_updated = 0
+        
+        for batch_idx, batch in enumerate(ticker_batches):
+            logger.info(f"Processing name update batch {batch_idx+1}/{len(ticker_batches)} ({len(batch)} tickers)")
+            
+            try:
+                for ticker in batch:
+                    max_retries = 3
+                    retry_delay = 5
+                    
+                    for retry in range(max_retries):
+                        try:
+                            # Get ticker info from yfinance
+                            ticker_obj = yf.Ticker(ticker)
+                            info = ticker_obj.info
+                            
+                            # Get the name (longName or shortName)
+                            name = info.get('longName', info.get('shortName', ticker))
+                            
+                            # Update name in database
+                            cursor.execute(
+                                "UPDATE stocks SET name = ? WHERE ticker = ?",
+                                (name, ticker)
+                            )
+                            
+                            logger.info(f"Updated name for {ticker}: {name}")
+                            total_updated += 1
+                            
+                            # Longer delay between individual ticker requests
+                            time.sleep(random.uniform(3, 5))
+                            break  # Success, exit retry loop
+                            
+                        except Exception as e:
+                            if "Rate limited" in str(e) and retry < max_retries - 1:
+                                # Exponential backoff for rate limiting
+                                wait_time = retry_delay * (2 ** retry)
+                                logger.warning(f"Rate limit hit for {ticker}, retrying in {wait_time} seconds (attempt {retry+1}/{max_retries})")
+                                time.sleep(wait_time)
+                            else:
+                                logger.error(f"Error updating name for {ticker}: {e}")
+                                break  # Exit retry loop for other errors
+                
+                # Commit changes after each batch
+                conn.commit()
+                
+            except Exception as e:
+                logger.error(f"Error processing name update batch: {e}")
+            
+            # Add longer delay between batches to avoid rate limiting
+            if batch_idx < len(ticker_batches) - 1:
+                delay = random.uniform(20, 30)
+                logger.info(f"Waiting {delay:.1f} seconds before next name update batch...")
+                time.sleep(delay)
+        
+        logger.info(f"Updated names for {total_updated} tickers")
     
     # Update prices if requested
     if tickers and should_update_prices:
@@ -270,6 +253,36 @@ def force_price_update(session=None, update_names=False, run_alerts=True, should
             logger.error(f"Error running alert system: {e}")
         except Exception as e:
             logger.error(f"Unexpected error running alert system: {e}")
+
+def update_price(ticker, session):
+    """Update price for a specific ticker and session"""
+    try:
+        ticker_obj = yf.Ticker(ticker)
+        info = ticker_obj.info
+        
+        # Get company name using shortName with fallback to ticker
+        name = info.get('shortName', ticker)
+        
+        # Get price with multiple fallbacks
+        price = None
+        if session == 'AM':
+            price = (info.get('regularMarketPrice') or 
+                    info.get('currentPrice') or
+                    info.get('regularMarketOpen'))
+        else:
+            price = (info.get('regularMarketPreviousClose') or
+                    info.get('previousClose'))
+        
+        if price is None:
+            logging.warning(f"No price found for {ticker} ({name})")
+            return None, None
+            
+        logging.info(f"Updated {name} ({ticker}) {session} price to {price}")
+        return price, name
+        
+    except Exception as e:
+        logging.error(f"Error updating {ticker}: {str(e)}")
+        return None, None
 
 def main():
     """Main entry point with command line argument parsing"""
@@ -303,6 +316,28 @@ def main():
     
     # Call the price update function
     force_price_update(session, update_names, run_alerts, update_prices)
+
+     # Update prices with progress bar
+    eastern = pytz.timezone('America/New_York')
+    eastern_time = datetime.now(eastern).strftime('%Y-%m-%d %H:%M:%S')
+    
+    for ticker in tqdm(tickers, desc="Updating Prices"):
+        am_price, name = update_price(ticker, 'AM')
+        pm_price, _ = update_price(ticker, 'PM')
+        
+        # Only update if we got prices
+        if am_price and pm_price:
+            try:
+                cursor.execute('''
+                    UPDATE stocks 
+                    SET AM_Price = ?, PM_Price = ?, 
+                        Last_Price_Update = ?, name = ?
+                    WHERE ticker = ?
+                ''', (am_price, pm_price, eastern_time, name, ticker))
+                
+            except Exception as e:
+                logging.error(f"Database error for {ticker}: {str(e)}")
+
 
 if __name__ == "__main__":
     # Load environment variables
