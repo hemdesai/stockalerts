@@ -1,0 +1,511 @@
+2025-03-10 13:55:38,324 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 13:55:38,377 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 13:55:40,136 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 13:55:41,916 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 13:55:43,393 - INFO - Starting Data Import Scheduler...
+2025-03-10 13:55:43,394 - INFO - Scheduled daily data refresh for 09:45 ET
+2025-03-10 13:55:43,396 - INFO - Scheduled weekly data refresh for 10:00 ET (will only run on first trading day of week)
+2025-03-10 13:55:43,407 - INFO - Scheduled afternoon daily data refresh for 13:30 ET
+2025-03-10 13:55:43,408 - INFO - Running initial data refresh at 04:25 ET
+2025-03-10 13:55:43,408 - INFO - Market closed - Outside trading hours
+2025-03-10 13:55:43,409 - INFO - Skipping daily data refresh - Market closed
+2025-03-10 13:55:43,409 - INFO - Market closed - Outside trading hours
+2025-03-10 13:55:43,410 - INFO - Skipping weekly data refresh - Market closed
+2025-03-10 13:57:53,136 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 13:57:53,178 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 13:57:55,287 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 13:57:56,957 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 13:57:59,561 - INFO - Starting Data Import Scheduler...
+2025-03-10 13:57:59,563 - INFO - Scheduled daily data refresh for 09:45 ET
+2025-03-10 13:57:59,563 - INFO - Scheduled weekly data refresh for 10:00 ET (will only run on first trading day of week)
+2025-03-10 13:57:59,564 - INFO - Scheduled afternoon daily data refresh for 13:30 ET
+2025-03-10 13:57:59,565 - INFO - Running initial data refresh at 04:27 ET
+2025-03-10 13:57:59,567 - INFO - Market closed - Outside trading hours
+2025-03-10 13:57:59,568 - INFO - Market is closed for today. Will check again tomorrow.
+2025-03-10 13:58:59,570 - INFO - Found trigger file: C:\code\cursor_stockalert\stockalert\data\trigger_refresh
+2025-03-10 13:58:59,571 - INFO - Manual refresh triggered
+2025-03-10 13:58:59,572 - INFO - Market closed - Outside trading hours
+2025-03-10 13:58:59,573 - INFO - Skipping daily data refresh - Market closed
+2025-03-10 13:58:59,574 - INFO - Market closed - Outside trading hours
+2025-03-10 13:58:59,574 - INFO - Skipping weekly data refresh - Market closed
+2025-03-10 13:58:59,577 - INFO - Removed trigger file after refresh
+2025-03-10 21:37:17,184 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 21:37:17,223 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 21:37:18,589 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 21:37:20,231 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 21:37:38,867 - INFO - HTTP Request: POST https://api.mistral.ai/v1/ocr "HTTP/1.1 200 OK"
+2025-03-10 21:37:46,618 - INFO - HTTP Request: POST https://api.mistral.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-03-10 21:37:50,061 - INFO - HTTP Request: POST https://api.mistral.ai/v1/ocr "HTTP/1.1 200 OK"
+2025-03-10 21:37:54,198 - INFO - HTTP Request: POST https://api.mistral.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-03-10 21:38:09,372 - INFO - HTTP Request: POST https://api.mistral.ai/v1/ocr "HTTP/1.1 200 OK"
+2025-03-10 21:38:31,004 - INFO - HTTP Request: POST https://api.mistral.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-03-10 22:04:45,332 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 22:04:45,366 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 22:04:46,960 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 22:04:48,320 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 22:05:08,293 - INFO - HTTP Request: POST https://api.mistral.ai/v1/ocr "HTTP/1.1 200 OK"
+2025-03-10 22:05:11,342 - INFO - HTTP Request: POST https://api.mistral.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-03-10 22:05:14,130 - INFO - HTTP Request: POST https://api.mistral.ai/v1/ocr "HTTP/1.1 200 OK"
+2025-03-10 22:05:18,470 - INFO - HTTP Request: POST https://api.mistral.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-03-10 22:05:23,648 - INFO - HTTP Request: POST https://api.mistral.ai/v1/ocr "HTTP/1.1 200 OK"
+2025-03-10 22:05:45,486 - INFO - HTTP Request: POST https://api.mistral.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-03-10 22:25:33,301 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 22:25:33,307 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 22:25:34,895 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 22:25:36,195 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-10 22:25:53,930 - INFO - HTTP Request: POST https://api.mistral.ai/v1/ocr "HTTP/1.1 200 OK"
+2025-03-10 22:25:57,059 - INFO - HTTP Request: POST https://api.mistral.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-03-10 22:26:02,032 - INFO - HTTP Request: POST https://api.mistral.ai/v1/ocr "HTTP/1.1 200 OK"
+2025-03-10 22:26:05,982 - INFO - HTTP Request: POST https://api.mistral.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-03-10 22:26:13,635 - INFO - HTTP Request: POST https://api.mistral.ai/v1/ocr "HTTP/1.1 200 OK"
+2025-03-10 22:26:35,782 - INFO - HTTP Request: POST https://api.mistral.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-03-11 11:18:13,344 - INFO - Market closed - Outside trading hours
+2025-03-11 11:18:13,584 - INFO - Skipping daily data refresh - Market closed
+2025-03-11 11:18:13,600 - INFO - Market closed - Outside trading hours
+2025-03-11 11:18:13,602 - INFO - Skipping weekly data refresh - Market closed
+2025-03-11 13:51:28,125 - INFO - Market closed - Outside trading hours
+2025-03-11 13:51:28,287 - INFO - Skipping daily data refresh - Market closed
+2025-03-11 18:44:25,467 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-11 18:44:25,521 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-11 18:44:26,978 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-11 18:44:28,399 - INFO - file_cache is only supported with oauth2client<4.0.0
+2025-03-11 18:44:38,528 - INFO - HTTP Request: POST https://api.mistral.ai/v1/ocr "HTTP/1.1 200 OK"
+2025-03-11 18:44:41,508 - INFO - HTTP Request: POST https://api.mistral.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-03-11 18:44:57,286 - INFO - HTTP Request: POST https://api.mistral.ai/v1/ocr "HTTP/1.1 200 OK"
+2025-03-11 18:45:19,362 - INFO - HTTP Request: POST https://api.mistral.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2025-03-11 18:45:19,388 - INFO - Starting Data Import Scheduler...
+2025-03-14 12:26:07,791 - import_all_data - INFO - Starting data import process at 2025-03-14T12:26:07.791659
+2025-03-14 12:26:07,806 - import_all_data - INFO - Updating category: ideas from C:\code\cursor_stockalert\stockalert\data\ideas.csv
+2025-03-14 12:26:07,832 - import_all_data - INFO - Deleted 4 records for ideas
+2025-03-14 12:26:32,773 - import_all_data - INFO - Imported 16 records for ideas
+2025-03-14 12:26:55,495 - import_all_data - INFO - Updated 16 stock names for ideas
+2025-03-14 12:26:55,517 - import_all_data - INFO - Updating category: digitalassets from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv
+2025-03-14 12:26:55,539 - import_all_data - INFO - Deleted 13 records for digitalassets
+2025-03-14 12:27:10,371 - import_all_data - INFO - Imported 13 records for digitalassets
+2025-03-14 12:27:21,904 - import_all_data - INFO - Updated 13 stock names for digitalassets
+2025-03-14 12:27:21,934 - import_all_data - INFO - Updating category: etfs from C:\code\cursor_stockalert\stockalert\data\etfs.csv
+2025-03-14 12:27:21,978 - import_all_data - INFO - Deleted 42 records for etfs
+2025-03-14 12:27:53,796 - yfinance - ERROR - 404 Client Error: Not Found for url: https://query2.finance.yahoo.com/v10/finance/quoteSummary/EPHB?modules=financialData%2CquoteType%2CdefaultKeyStatistics%2CassetProfile%2CsummaryDetail&corsDomain=finance.yahoo.com&formatted=false&symbol=EPHB&crumb=hbJ4KcspNqX
+2025-03-14 12:28:14,465 - import_all_data - INFO - Imported 42 records for etfs
+2025-03-14 12:28:53,423 - yfinance - ERROR - 404 Client Error: Not Found for url: https://query2.finance.yahoo.com/v10/finance/quoteSummary/EPHB?modules=financialData%2CquoteType%2CdefaultKeyStatistics%2CassetProfile%2CsummaryDetail&corsDomain=finance.yahoo.com&formatted=false&symbol=EPHB&crumb=hbJ4KcspNqX
+2025-03-14 12:29:09,271 - import_all_data - INFO - Updated 42 stock names for etfs
+2025-03-14 12:29:09,337 - import_all_data - INFO - Updating category: daily from C:\code\cursor_stockalert\stockalert\data\daily.csv
+2025-03-14 12:29:09,358 - import_all_data - INFO - Deleted 36 records for daily
+2025-03-14 12:30:09,387 - import_all_data - INFO - Imported 36 records for daily
+2025-03-14 12:30:47,998 - import_all_data - INFO - Updated 36 stock names for daily
+2025-03-14 12:30:47,998 - import_all_data - INFO - Purging old data...
+2025-03-14 12:30:47,999 - import_all_data - INFO - Deleted 0 old records
+2025-03-14 12:30:47,999 - import_all_data - INFO - Completed data import process at 2025-03-14T12:30:47.999781
+2025-03-14 21:01:10,202 - import_all_data - INFO - Starting data import process at 2025-03-14T21:01:10.201996
+2025-03-14 21:01:10,248 - import_all_data - INFO - Skipping ideas - no update needed based on frequency and file modification time
+2025-03-14 21:01:10,250 - import_all_data - INFO - Updating category: digitalassets from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv
+2025-03-14 21:01:10,260 - import_all_data - INFO - Deleted 13 records for digitalassets
+2025-03-14 21:01:24,406 - import_all_data - INFO - Imported 13 records for digitalassets
+2025-03-14 21:06:04,688 - import_all_data - INFO - Starting data import process at 2025-03-14T21:06:04.688637
+2025-03-14 21:06:04,709 - import_all_data - INFO - Skipping ideas - no update needed based on frequency and file modification time
+2025-03-14 21:06:04,711 - import_all_data - INFO - Skipping digitalassets - no update needed based on frequency and file modification time
+2025-03-14 21:06:04,724 - import_all_data - INFO - Updating category: etfs from C:\code\cursor_stockalert\stockalert\data\etfs.csv
+2025-03-14 21:06:04,735 - import_all_data - INFO - Deleted 42 records for etfs
+2025-03-14 21:06:45,990 - import_all_data - INFO - Imported 38 records for etfs
+2025-03-14 21:07:17,682 - import_all_data - INFO - Successfully updated stock names for etfs
+2025-03-14 21:07:17,702 - import_all_data - INFO - Updating category: daily from C:\code\cursor_stockalert\stockalert\data\daily.csv
+2025-03-14 21:07:17,721 - import_all_data - INFO - Deleted 36 records for daily
+2025-03-14 21:07:53,061 - import_all_data - INFO - Imported 36 records for daily
+2025-03-14 21:08:23,551 - import_all_data - INFO - Successfully updated stock names for daily
+2025-03-14 21:08:23,552 - import_all_data - INFO - Completed data import process at 2025-03-14T21:08:23.552372
+2025-03-21 02:37:07,561 - import_all_data - INFO - Starting data import process at 2025-03-21T02:37:07.561159
+2025-03-21 02:37:07,567 - import_all_data - INFO - Updating category: ideas from C:\code\cursor_stockalert\stockalert\data\ideas.csv
+2025-03-21 02:37:07,582 - import_all_data - INFO - Deleted 16 records for ideas
+2025-03-21 02:37:20,505 - import_all_data - INFO - Imported 16 records for ideas
+2025-03-21 02:37:31,395 - import_all_data - INFO - Successfully updated stock names for ideas
+2025-03-21 02:37:31,396 - import_all_data - INFO - Updating category: digitalassets from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv
+2025-03-21 02:37:31,414 - import_all_data - INFO - Deleted 13 records for digitalassets
+2025-03-21 02:37:41,067 - import_all_data - INFO - Imported 13 records for digitalassets
+2025-03-21 02:37:49,754 - import_all_data - INFO - Successfully updated stock names for digitalassets
+2025-03-21 02:37:49,755 - import_all_data - INFO - Updating category: etfs from C:\code\cursor_stockalert\stockalert\data\etfs.csv
+2025-03-21 02:37:49,784 - import_all_data - INFO - Deleted 38 records for etfs
+2025-03-21 03:06:15,350 - import_all_data - INFO - Starting data import process at 2025-03-21T03:06:15.350847
+2025-03-21 03:06:15,377 - import_all_data - INFO - Updating category: ideas from C:\code\cursor_stockalert\stockalert\data\ideas.csv
+2025-03-21 03:06:15,393 - import_all_data - INFO - Deleted 16 records for ideas
+2025-03-21 03:06:20,719 - import_all_data - INFO - Imported 7 records for ideas
+2025-03-21 03:06:25,165 - import_all_data - INFO - Successfully updated stock names for ideas
+2025-03-21 03:06:25,188 - import_all_data - INFO - Updating category: digitalassets from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv
+2025-03-21 03:06:25,215 - import_all_data - INFO - Deleted 13 records for digitalassets
+2025-03-21 03:06:34,356 - import_all_data - INFO - Imported 13 records for digitalassets
+2025-03-21 03:06:42,826 - import_all_data - INFO - Successfully updated stock names for digitalassets
+2025-03-21 03:06:42,841 - import_all_data - INFO - Updating category: etfs from C:\code\cursor_stockalert\stockalert\data\etfs.csv
+2025-03-21 03:06:42,844 - import_all_data - INFO - Deleted 0 records for etfs
+2025-03-21 03:07:14,128 - import_all_data - INFO - Imported 44 records for etfs
+2025-03-21 03:07:43,748 - import_all_data - INFO - Successfully updated stock names for etfs
+2025-03-21 03:07:43,782 - import_all_data - INFO - Updating category: daily from C:\code\cursor_stockalert\stockalert\data\daily.csv
+2025-03-21 03:07:43,806 - import_all_data - INFO - Deleted 36 records for daily
+2025-03-21 03:08:09,513 - import_all_data - INFO - Imported 36 records for daily
+2025-03-21 03:08:32,835 - import_all_data - INFO - Successfully updated stock names for daily
+2025-03-21 03:08:32,836 - import_all_data - INFO - Completed data import process at 2025-03-21T03:08:32.836530
+2025-03-24 09:23:01,104 - import_all_data - INFO - Starting data import process at 2025-03-24T09:23:01.104716
+2025-03-24 09:23:01,128 - import_all_data - INFO - Updating category: ideas from C:\code\cursor_stockalert\stockalert\data\ideas.csv
+2025-03-24 09:23:01,145 - import_all_data - INFO - Deleted 7 records for ideas
+2025-03-24 09:23:14,281 - import_all_data - INFO - Imported 9 records for ideas
+2025-03-24 09:23:20,915 - import_all_data - INFO - Successfully updated stock names for ideas
+2025-03-24 09:23:20,916 - import_all_data - INFO - Updating category: digitalassets from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv
+2025-03-24 09:23:20,931 - import_all_data - INFO - Deleted 13 records for digitalassets
+2025-03-24 09:23:37,806 - import_all_data - INFO - Imported 13 records for digitalassets
+2025-03-24 09:23:49,115 - import_all_data - INFO - Successfully updated stock names for digitalassets
+2025-03-24 09:23:49,116 - import_all_data - INFO - Updating category: etfs from C:\code\cursor_stockalert\stockalert\data\etfs.csv
+2025-03-24 09:23:49,136 - import_all_data - INFO - Deleted 42 records for etfs
+2025-03-24 09:24:58,413 - import_all_data - INFO - Imported 48 records for etfs
+2025-03-24 09:25:34,421 - import_all_data - INFO - Successfully updated stock names for etfs
+2025-03-24 09:25:34,422 - import_all_data - INFO - Updating category: daily from C:\code\cursor_stockalert\stockalert\data\daily.csv
+2025-03-24 09:25:34,443 - import_all_data - INFO - Deleted 36 records for daily
+2025-03-24 09:26:27,899 - import_all_data - INFO - Imported 36 records for daily
+2025-03-24 09:26:58,838 - import_all_data - INFO - Successfully updated stock names for daily
+2025-03-24 09:26:58,839 - import_all_data - INFO - Completed data import process at 2025-03-24T09:26:58.839327
+2025-03-25 11:20:22,092 - import_all_data - INFO - Starting data import process at 2025-03-25T11:20:22.092336
+2025-03-25 11:22:12,124 - import_all_data - INFO - Starting data import process at 2025-03-25T11:22:12.124153
+2025-03-25 11:22:12,125 - import_all_data - INFO - Updating category: ideas from C:\code\cursor_stockalert\stockalert\data\ideas.csv
+2025-03-25 11:22:12,146 - import_all_data - INFO - Deleted 8 records for ideas
+2025-03-25 11:22:24,113 - import_all_data - INFO - Imported 0 records for ideas
+2025-03-25 11:22:24,114 - import_all_data - WARNING - Encountered 8 errors during import
+2025-03-25 11:22:24,114 - import_all_data - WARNING - UL: table stocks has no column named target_price
+2025-03-25 11:22:24,115 - import_all_data - WARNING - NSP: table stocks has no column named target_price
+2025-03-25 11:22:24,116 - import_all_data - WARNING - WELL: table stocks has no column named target_price
+2025-03-25 11:22:24,117 - import_all_data - WARNING - TCEHY: table stocks has no column named target_price
+2025-03-25 11:22:24,117 - import_all_data - WARNING - AMAT: table stocks has no column named target_price
+2025-03-25 11:22:24,117 - import_all_data - WARNING - WING: table stocks has no column named target_price
+2025-03-25 11:22:24,118 - import_all_data - WARNING - CMCSA: table stocks has no column named target_price
+2025-03-25 11:22:24,119 - import_all_data - WARNING - RBLX: table stocks has no column named target_price
+2025-03-25 11:22:24,147 - import_all_data - INFO - Successfully updated stock names for ideas
+2025-03-25 11:22:24,148 - import_all_data - INFO - Updating category: digitalassets from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv
+2025-03-25 11:22:24,164 - import_all_data - INFO - Deleted 13 records for digitalassets
+2025-03-25 11:22:44,455 - import_all_data - INFO - Imported 0 records for digitalassets
+2025-03-25 11:22:44,456 - import_all_data - WARNING - Encountered 15 errors during import
+2025-03-25 11:22:44,457 - import_all_data - WARNING - BTC-USD: table stocks has no column named target_price
+2025-03-25 11:22:44,457 - import_all_data - WARNING - ETH-USD: table stocks has no column named target_price
+2025-03-25 11:22:44,458 - import_all_data - WARNING - SOL-USD: table stocks has no column named target_price
+2025-03-25 11:22:44,459 - import_all_data - WARNING - AVAX-USD: table stocks has no column named target_price
+2025-03-25 11:22:44,460 - import_all_data - WARNING - XRP-USD: table stocks has no column named target_price
+2025-03-25 11:22:44,461 - import_all_data - WARNING - IBIT: table stocks has no column named target_price
+2025-03-25 11:22:44,462 - import_all_data - WARNING - MSTR: table stocks has no column named target_price
+2025-03-25 11:22:44,462 - import_all_data - WARNING - IBIT: table stocks has no column named target_price
+2025-03-25 11:22:44,463 - import_all_data - WARNING - MSTR: table stocks has no column named target_price
+2025-03-25 11:22:44,464 - import_all_data - WARNING - MARA: table stocks has no column named target_price
+2025-03-25 11:22:44,464 - import_all_data - WARNING - RIOT: table stocks has no column named target_price
+2025-03-25 11:22:44,465 - import_all_data - WARNING - ETHA: table stocks has no column named target_price
+2025-03-25 11:22:44,466 - import_all_data - WARNING - BLOK: table stocks has no column named target_price
+2025-03-25 11:22:44,466 - import_all_data - WARNING - COIN: table stocks has no column named target_price
+2025-03-25 11:22:44,467 - import_all_data - WARNING - BITO: table stocks has no column named target_price
+2025-03-25 11:22:44,499 - import_all_data - INFO - Successfully updated stock names for digitalassets
+2025-03-25 11:22:44,510 - import_all_data - INFO - Updating category: etfs from C:\code\cursor_stockalert\stockalert\data\etfs.csv
+2025-03-25 11:22:44,530 - import_all_data - INFO - Deleted 48 records for etfs
+2025-03-25 11:23:46,660 - import_all_data - INFO - Imported 0 records for etfs
+2025-03-25 11:23:46,661 - import_all_data - WARNING - Encountered 48 errors during import
+2025-03-25 11:23:46,661 - import_all_data - WARNING - BUXX: table stocks has no column named target_price
+2025-03-25 11:23:46,662 - import_all_data - WARNING - EWS: table stocks has no column named target_price
+2025-03-25 11:23:46,663 - import_all_data - WARNING - CLOZ: table stocks has no column named target_price
+2025-03-25 11:23:46,663 - import_all_data - WARNING - CTA: table stocks has no column named target_price
+2025-03-25 11:23:46,664 - import_all_data - WARNING - UNG: table stocks has no column named target_price
+2025-03-25 11:23:46,664 - import_all_data - WARNING - GXG: table stocks has no column named target_price
+2025-03-25 11:23:46,665 - import_all_data - WARNING - GDX: table stocks has no column named target_price
+2025-03-25 11:23:46,665 - import_all_data - WARNING - SLV: table stocks has no column named target_price
+2025-03-25 11:23:46,666 - import_all_data - WARNING - GLD: table stocks has no column named target_price
+2025-03-25 11:23:46,666 - import_all_data - WARNING - AMLP: table stocks has no column named target_price
+2025-03-25 11:23:46,667 - import_all_data - WARNING - EWD: table stocks has no column named target_price
+2025-03-25 11:23:46,668 - import_all_data - WARNING - AAAU: table stocks has no column named target_price
+2025-03-25 11:23:46,668 - import_all_data - WARNING - FXB: table stocks has no column named target_price
+2025-03-25 11:23:46,669 - import_all_data - WARNING - EPOL: table stocks has no column named target_price
+2025-03-25 11:23:46,669 - import_all_data - WARNING - VGK: table stocks has no column named target_price
+2025-03-25 11:23:46,670 - import_all_data - WARNING - TLT: table stocks has no column named target_price
+2025-03-25 11:23:46,670 - import_all_data - WARNING - LQD: table stocks has no column named target_price
+2025-03-25 11:23:46,670 - import_all_data - WARNING - CLOX: table stocks has no column named target_price
+2025-03-25 11:23:46,671 - import_all_data - WARNING - EWG: table stocks has no column named target_price
+2025-03-25 11:23:46,671 - import_all_data - WARNING - IAK: table stocks has no column named target_price
+2025-03-25 11:23:46,672 - import_all_data - WARNING - TUA: table stocks has no column named target_price
+2025-03-25 11:23:46,672 - import_all_data - WARNING - IGIB: table stocks has no column named target_price
+2025-03-25 11:23:46,673 - import_all_data - WARNING - IVOL: table stocks has no column named target_price
+2025-03-25 11:23:46,673 - import_all_data - WARNING - KBA: table stocks has no column named target_price
+2025-03-25 11:23:46,674 - import_all_data - WARNING - PPLT: table stocks has no column named target_price
+2025-03-25 11:23:46,675 - import_all_data - WARNING - BTAL: table stocks has no column named target_price
+2025-03-25 11:23:46,675 - import_all_data - WARNING - FXE: table stocks has no column named target_price
+2025-03-25 11:23:46,676 - import_all_data - WARNING - VNM: table stocks has no column named target_price
+2025-03-25 11:23:46,677 - import_all_data - WARNING - TAN: table stocks has no column named target_price
+2025-03-25 11:23:46,678 - import_all_data - WARNING - IDX: table stocks has no column named target_price
+2025-03-25 11:23:46,678 - import_all_data - WARNING - INDA: table stocks has no column named target_price
+2025-03-25 11:23:46,679 - import_all_data - WARNING - ITB: table stocks has no column named target_price
+2025-03-25 11:23:46,679 - import_all_data - WARNING - THD: table stocks has no column named target_price
+2025-03-25 11:23:46,680 - import_all_data - WARNING - SMH: table stocks has no column named target_price
+2025-03-25 11:23:46,681 - import_all_data - WARNING - GRNY: table stocks has no column named target_price
+2025-03-25 11:23:46,682 - import_all_data - WARNING - WGMI: table stocks has no column named target_price
+2025-03-25 11:23:46,682 - import_all_data - WARNING - JOET: table stocks has no column named target_price
+2025-03-25 11:23:46,683 - import_all_data - WARNING - JETS: table stocks has no column named target_price
+2025-03-25 11:23:46,683 - import_all_data - WARNING - IBIT: table stocks has no column named target_price
+2025-03-25 11:23:46,684 - import_all_data - WARNING - CORN: table stocks has no column named target_price
+2025-03-25 11:23:46,685 - import_all_data - WARNING - URA: table stocks has no column named target_price
+2025-03-25 11:23:46,685 - import_all_data - WARNING - GVIP: table stocks has no column named target_price
+2025-03-25 11:23:46,686 - import_all_data - WARNING - HACK: table stocks has no column named target_price
+2025-03-25 11:23:46,686 - import_all_data - WARNING - FXC: table stocks has no column named target_price
+2025-03-25 11:23:46,687 - import_all_data - WARNING - KCE: table stocks has no column named target_price
+2025-03-25 11:23:46,688 - import_all_data - WARNING - UUP: table stocks has no column named target_price
+2025-03-25 11:23:46,689 - import_all_data - WARNING - KRE: table stocks has no column named target_price
+2025-03-25 11:23:46,689 - import_all_data - WARNING - FFND: table stocks has no column named target_price
+2025-03-25 11:23:46,751 - import_all_data - INFO - Successfully updated stock names for etfs
+2025-03-25 11:23:46,753 - import_all_data - INFO - Updating category: daily from C:\code\cursor_stockalert\stockalert\data\daily.csv
+2025-03-25 11:23:46,779 - import_all_data - INFO - Deleted 36 records for daily
+2025-03-25 11:24:31,606 - import_all_data - INFO - Imported 0 records for daily
+2025-03-25 11:24:31,607 - import_all_data - WARNING - Encountered 36 errors during import
+2025-03-25 11:24:31,607 - import_all_data - WARNING - ^TYX: table stocks has no column named target_price
+2025-03-25 11:24:31,608 - import_all_data - WARNING - ^TNX: table stocks has no column named target_price
+2025-03-25 11:24:31,608 - import_all_data - WARNING - 2YY=F: table stocks has no column named target_price
+2025-03-25 11:24:31,609 - import_all_data - WARNING - HYG: table stocks has no column named target_price
+2025-03-25 11:24:31,609 - import_all_data - WARNING - LQD: table stocks has no column named target_price
+2025-03-25 11:24:31,609 - import_all_data - WARNING - ^GSPC: table stocks has no column named target_price
+2025-03-25 11:24:31,610 - import_all_data - WARNING - ^IXIC: table stocks has no column named target_price
+2025-03-25 11:24:31,610 - import_all_data - WARNING - ^RUT: table stocks has no column named target_price
+2025-03-25 11:24:31,611 - import_all_data - WARNING - XLK: table stocks has no column named target_price
+2025-03-25 11:24:31,611 - import_all_data - WARNING - XLU: table stocks has no column named target_price
+2025-03-25 11:24:31,612 - import_all_data - WARNING - IAK: table stocks has no column named target_price
+2025-03-25 11:24:31,612 - import_all_data - WARNING - 000001.SS: table stocks has no column named target_price
+2025-03-25 11:24:31,612 - import_all_data - WARNING - ^N225: table stocks has no column named target_price
+2025-03-25 11:24:31,613 - import_all_data - WARNING - ^BSESN: table stocks has no column named target_price
+2025-03-25 11:24:31,613 - import_all_data - WARNING - ^GDAXI: table stocks has no column named target_price
+2025-03-25 11:24:31,614 - import_all_data - WARNING - ^VIX: table stocks has no column named target_price
+2025-03-25 11:24:31,614 - import_all_data - WARNING - DX-Y.NYB: table stocks has no column named target_price
+2025-03-25 11:24:31,614 - import_all_data - WARNING - EURUSD=X: table stocks has no column named target_price
+2025-03-25 11:24:31,615 - import_all_data - WARNING - JPY=X: table stocks has no column named target_price
+2025-03-25 11:24:31,615 - import_all_data - WARNING - GBPUSD=X: table stocks has no column named target_price
+2025-03-25 11:24:31,615 - import_all_data - WARNING - CADUSD=X: table stocks has no column named target_price
+2025-03-25 11:24:31,616 - import_all_data - WARNING - CL=F: table stocks has no column named target_price
+2025-03-25 11:24:31,617 - import_all_data - WARNING - BZ=F: table stocks has no column named target_price
+2025-03-25 11:24:31,617 - import_all_data - WARNING - NG=F: table stocks has no column named target_price
+2025-03-25 11:24:31,617 - import_all_data - WARNING - GC=F: table stocks has no column named target_price
+2025-03-25 11:24:31,618 - import_all_data - WARNING - HG=F: table stocks has no column named target_price
+2025-03-25 11:24:31,619 - import_all_data - WARNING - SI=F: table stocks has no column named target_price
+2025-03-25 11:24:31,619 - import_all_data - WARNING - MSFT: table stocks has no column named target_price
+2025-03-25 11:24:31,619 - import_all_data - WARNING - AAPL: table stocks has no column named target_price
+2025-03-25 11:24:31,620 - import_all_data - WARNING - AMZN: table stocks has no column named target_price
+2025-03-25 11:24:31,620 - import_all_data - WARNING - META: table stocks has no column named target_price
+2025-03-25 11:24:31,621 - import_all_data - WARNING - GOOGL: table stocks has no column named target_price
+2025-03-25 11:24:31,622 - import_all_data - WARNING - NFLX: table stocks has no column named target_price
+2025-03-25 11:24:31,622 - import_all_data - WARNING - TSLA: table stocks has no column named target_price
+2025-03-25 11:24:31,623 - import_all_data - WARNING - NVDA: table stocks has no column named target_price
+2025-03-25 11:24:31,623 - import_all_data - WARNING - BTC-USD: table stocks has no column named target_price
+2025-03-25 11:24:31,646 - import_all_data - INFO - Successfully updated stock names for daily
+2025-03-25 11:24:31,646 - import_all_data - INFO - Completed data import process at 2025-03-25T11:24:31.646879
+2025-03-25 11:26:21,670 - import_all_data - INFO - Starting data import process at 2025-03-25T11:26:21.669914
+2025-03-25 11:26:21,673 - import_all_data - INFO - Updating category: ideas from C:\code\cursor_stockalert\stockalert\data\ideas.csv
+2025-03-25 11:26:21,680 - import_all_data - INFO - Deleted 0 records for ideas
+2025-03-25 11:26:21,724 - import_all_data - ERROR - Error importing data for ideas: 'StockAlertDBManager' object has no attribute 'get_connection'
+2025-03-25 11:26:21,726 - import_all_data - INFO - Updating category: digitalassets from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv
+2025-03-25 11:26:21,734 - import_all_data - INFO - Deleted 0 records for digitalassets
+2025-03-25 11:26:21,747 - import_all_data - ERROR - Error importing data for digitalassets: 'StockAlertDBManager' object has no attribute 'get_connection'
+2025-03-25 11:26:21,749 - import_all_data - INFO - Updating category: etfs from C:\code\cursor_stockalert\stockalert\data\etfs.csv
+2025-03-25 11:26:21,758 - import_all_data - INFO - Deleted 0 records for etfs
+2025-03-25 11:26:21,779 - import_all_data - ERROR - Error importing data for etfs: 'StockAlertDBManager' object has no attribute 'get_connection'
+2025-03-25 11:26:21,782 - import_all_data - INFO - Updating category: daily from C:\code\cursor_stockalert\stockalert\data\daily.csv
+2025-03-25 11:26:21,791 - import_all_data - INFO - Deleted 0 records for daily
+2025-03-25 11:26:21,814 - import_all_data - ERROR - Error importing data for daily: 'StockAlertDBManager' object has no attribute 'get_connection'
+2025-03-25 11:26:21,815 - import_all_data - INFO - Completed data import process at 2025-03-25T11:26:21.814930
+2025-03-25 11:27:22,677 - import_all_data - INFO - Starting data import process at 2025-03-25T11:27:22.677223
+2025-03-25 11:27:22,678 - import_all_data - INFO - Updating category: ideas from C:\code\cursor_stockalert\stockalert\data\ideas.csv
+2025-03-25 11:27:22,696 - import_all_data - INFO - Deleted 0 records for ideas
+2025-03-25 11:27:22,751 - import_all_data - ERROR - Error importing data for ideas: table stocks has no column named buy_trade
+2025-03-25 11:27:22,752 - import_all_data - INFO - Updating category: digitalassets from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv
+2025-03-25 11:27:22,754 - import_all_data - INFO - Deleted 0 records for digitalassets
+2025-03-25 11:27:22,793 - import_all_data - ERROR - Error importing data for digitalassets: table stocks has no column named buy_trade
+2025-03-25 11:27:22,794 - import_all_data - INFO - Updating category: etfs from C:\code\cursor_stockalert\stockalert\data\etfs.csv
+2025-03-25 11:27:22,798 - import_all_data - INFO - Deleted 0 records for etfs
+2025-03-25 11:27:22,836 - import_all_data - ERROR - CSV file for etfs does not have a 'ticker' column
+2025-03-25 11:27:22,864 - import_all_data - INFO - Updating category: daily from C:\code\cursor_stockalert\stockalert\data\daily.csv
+2025-03-25 11:27:22,867 - import_all_data - INFO - Deleted 0 records for daily
+2025-03-25 11:27:22,914 - import_all_data - ERROR - Error importing data for daily: table stocks has no column named buy_trade
+2025-03-25 11:27:22,915 - import_all_data - INFO - Completed data import process at 2025-03-25T11:27:22.915293
+2025-03-25 11:35:57,775 - import_all_data - INFO - Starting data import process at 2025-03-25T11:35:57.775529
+2025-03-25 11:35:57,779 - import_all_data - INFO - Updating category: ideas from C:\code\cursor_stockalert\stockalert\data\ideas.csv
+2025-03-25 11:35:57,789 - import_all_data - INFO - Deleted 0 records for ideas
+2025-03-25 11:35:57,839 - import_all_data - INFO - Imported 8 records for ideas
+2025-03-25 11:35:57,904 - import_all_data - INFO - Updating category: digitalassets from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv
+2025-03-25 11:35:57,919 - import_all_data - INFO - Deleted 0 records for digitalassets
+2025-03-25 11:35:57,947 - import_all_data - INFO - Imported 15 records for digitalassets
+2025-03-25 11:35:58,026 - import_all_data - INFO - Updating category: etfs from C:\code\cursor_stockalert\stockalert\data\etfs.csv
+2025-03-25 11:35:58,047 - import_all_data - INFO - Deleted 0 records for etfs
+2025-03-25 11:35:58,062 - import_all_data - ERROR - CSV file for etfs does not have a 'ticker' column
+2025-03-25 11:35:58,096 - import_all_data - INFO - Updating category: daily from C:\code\cursor_stockalert\stockalert\data\daily.csv
+2025-03-25 11:35:58,100 - import_all_data - INFO - Deleted 0 records for daily
+2025-03-25 11:35:58,139 - import_all_data - INFO - Imported 36 records for daily
+2025-03-25 11:35:58,201 - import_all_data - INFO - Completed data import process at 2025-03-25T11:35:58.201180
+2025-03-25 11:44:58,391 - import_all_data - INFO - Starting data import process at 2025-03-25T11:44:58.390856
+2025-03-25 11:44:58,394 - import_all_data - INFO - Updating category: ideas from C:\code\cursor_stockalert\stockalert\data\ideas.csv
+2025-03-25 11:44:58,424 - import_all_data - INFO - Deleted 8 records for ideas
+2025-03-25 11:44:58,465 - import_all_data - INFO - Imported 8 records for ideas
+2025-03-25 11:44:58,489 - import_all_data - INFO - Updating category: digitalassets from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv
+2025-03-25 11:44:58,509 - import_all_data - INFO - Deleted 15 records for digitalassets
+2025-03-25 11:44:58,577 - import_all_data - INFO - Imported 15 records for digitalassets
+2025-03-25 11:44:58,637 - import_all_data - INFO - Updating category: etfs from C:\code\cursor_stockalert\stockalert\data\etfs.csv
+2025-03-25 11:44:58,648 - import_all_data - INFO - Deleted 0 records for etfs
+2025-03-25 11:44:58,715 - import_all_data - INFO - Imported 48 records for etfs
+2025-03-25 11:44:58,766 - import_all_data - INFO - Updating category: daily from C:\code\cursor_stockalert\stockalert\data\daily.csv
+2025-03-25 11:44:58,781 - import_all_data - INFO - Deleted 36 records for daily
+2025-03-25 11:44:58,878 - import_all_data - INFO - Imported 36 records for daily
+2025-03-25 11:44:58,939 - import_all_data - INFO - Completed data import process at 2025-03-25T11:44:58.939539
+2025-03-31 14:01:42,211 - import_all_data - INFO - Starting data import process at 2025-03-31T14:01:42.211757
+2025-03-31 14:01:42,222 - import_all_data - INFO - Updating category: ideas from C:\code\cursor_stockalert\stockalert\data\ideas.csv
+2025-03-31 14:01:42,234 - import_all_data - INFO - Deleted 8 records for ideas
+2025-03-31 14:01:42,327 - import_all_data - INFO - Imported 8 records for ideas
+2025-03-31 14:01:42,346 - import_all_data - INFO - Updating category: digitalassets from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv
+2025-03-31 14:01:42,360 - import_all_data - INFO - Deleted 13 records for digitalassets
+2025-03-31 14:01:42,415 - import_all_data - INFO - Imported 13 records for digitalassets
+2025-03-31 14:01:42,438 - import_all_data - INFO - Updating category: etfs from C:\code\cursor_stockalert\stockalert\data\etfs.csv
+2025-03-31 14:01:42,453 - import_all_data - INFO - Deleted 47 records for etfs
+2025-03-31 14:01:42,495 - import_all_data - ERROR - CSV file for etfs does not have a 'ticker' column
+2025-03-31 14:01:42,523 - import_all_data - INFO - Updating category: daily from C:\code\cursor_stockalert\stockalert\data\daily.csv
+2025-03-31 14:01:42,538 - import_all_data - INFO - Deleted 36 records for daily
+2025-03-31 14:01:42,596 - import_all_data - INFO - Imported 36 records for daily
+2025-03-31 14:01:42,624 - import_all_data - INFO - Completed data import process at 2025-03-31T14:01:42.624303
+2025-03-31 14:07:32,717 - import_all_data - INFO - Starting data import process at 2025-03-31T14:07:32.717371
+2025-03-31 14:07:32,718 - import_all_data - INFO - Updating category: ideas from C:\code\cursor_stockalert\stockalert\data\ideas.csv
+2025-03-31 14:07:32,741 - import_all_data - INFO - Deleted 8 records for ideas
+2025-03-31 14:07:32,774 - import_all_data - INFO - Imported 8 records for ideas
+2025-03-31 14:07:32,797 - import_all_data - INFO - Updating category: digitalassets from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv
+2025-03-31 14:07:32,809 - import_all_data - INFO - Deleted 13 records for digitalassets
+2025-03-31 14:07:32,830 - import_all_data - INFO - Imported 13 records for digitalassets
+2025-03-31 14:07:32,851 - import_all_data - INFO - Updating category: etfs from C:\code\cursor_stockalert\stockalert\data\etfs.csv
+2025-03-31 14:07:32,855 - import_all_data - INFO - Deleted 0 records for etfs
+2025-03-31 14:07:32,873 - import_all_data - INFO - Imported 42 records for etfs
+2025-03-31 14:07:32,897 - import_all_data - INFO - Updating category: daily from C:\code\cursor_stockalert\stockalert\data\daily.csv
+2025-03-31 14:07:32,912 - import_all_data - INFO - Deleted 36 records for daily
+2025-03-31 14:07:32,935 - import_all_data - INFO - Imported 36 records for daily
+2025-03-31 14:07:32,959 - import_all_data - INFO - Completed data import process at 2025-03-31T14:07:32.959151
+2025-04-01 13:50:33,932 - INFO - Starting database import...
+2025-04-01 13:50:33,933 - INFO - Importing daily data from C:\code\cursor_stockalert\stockalert\data\daily.csv...
+2025-04-01 13:50:33,970 - INFO - Successfully imported 36 records for daily
+2025-04-01 13:50:33,971 - INFO - Importing ideas data from C:\code\cursor_stockalert\stockalert\data\ideas.csv...
+2025-04-01 13:50:34,008 - INFO - Successfully imported 8 records for ideas
+2025-04-01 13:50:34,009 - INFO - Importing etfs data from C:\code\cursor_stockalert\stockalert\data\etfs.csv...
+2025-04-01 13:50:34,040 - INFO - Successfully imported 42 records for etfs
+2025-04-01 13:50:34,040 - INFO - Importing digitalassets data from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv...
+2025-04-01 13:50:34,058 - INFO - Successfully imported 13 records for digitalassets
+2025-04-01 13:50:34,058 - INFO - Database import completed
+2025-04-02 13:45:38,078 - INFO - Starting database import...
+2025-04-02 13:45:38,079 - INFO - Importing daily data from C:\code\cursor_stockalert\stockalert\data\daily.csv...
+2025-04-02 13:45:38,116 - INFO - Successfully imported 36 records for daily
+2025-04-02 13:45:38,117 - INFO - Importing ideas data from C:\code\cursor_stockalert\stockalert\data\ideas.csv...
+2025-04-02 13:45:38,163 - INFO - Successfully imported 8 records for ideas
+2025-04-02 13:45:38,163 - INFO - Importing etfs data from C:\code\cursor_stockalert\stockalert\data\etfs.csv...
+2025-04-02 13:45:38,211 - INFO - Successfully imported 42 records for etfs
+2025-04-02 13:45:38,213 - INFO - Importing digitalassets data from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv...
+2025-04-02 13:45:38,225 - INFO - Successfully imported 13 records for digitalassets
+2025-04-02 13:45:38,225 - INFO - Database import completed
+2025-04-02 13:51:25,412 - import_all_data - INFO - Starting data import...
+2025-04-02 13:51:25,412 - import_all_data - INFO - Importing daily data from C:\code\cursor_stockalert\stockalert\data\daily.csv...
+2025-04-02 13:51:25,457 - import_all_data - INFO - Successfully imported 36 records for daily
+2025-04-02 13:51:25,458 - import_all_data - INFO - Importing ideas data from C:\code\cursor_stockalert\stockalert\data\ideas.csv...
+2025-04-02 13:51:25,500 - import_all_data - INFO - Successfully imported 8 records for ideas
+2025-04-02 13:51:25,500 - import_all_data - INFO - Importing etfs data from C:\code\cursor_stockalert\stockalert\data\etfs.csv...
+2025-04-02 13:51:25,548 - import_all_data - INFO - Successfully imported 42 records for etfs
+2025-04-02 13:51:25,549 - import_all_data - INFO - Importing digitalassets data from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv...
+2025-04-02 13:51:25,597 - import_all_data - INFO - Successfully imported 13 records for digitalassets
+2025-04-02 13:51:25,597 - import_all_data - INFO - Data import completed
+2025-04-02 14:17:48,450 - INFO - Starting database import...
+2025-04-02 14:17:48,454 - INFO - Importing daily data from C:\code\cursor_stockalert\stockalert\data\daily.csv...
+2025-04-02 14:17:48,497 - INFO - Inserted 36 records into stocks table for daily
+2025-04-02 14:17:48,498 - INFO - Importing ideas data from C:\code\cursor_stockalert\stockalert\data\ideas.csv...
+2025-04-02 14:17:48,520 - INFO - Inserted 8 records into stocks table for ideas
+2025-04-02 14:17:48,521 - INFO - Importing etfs data from C:\code\cursor_stockalert\stockalert\data\etfs.csv...
+2025-04-02 14:17:48,567 - INFO - Inserted 42 records into stocks table for etfs
+2025-04-02 14:17:48,568 - INFO - Importing digitalassets data from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv...
+2025-04-02 14:17:48,601 - INFO - Inserted 13 records into stocks table for digitalassets
+2025-04-02 14:17:48,601 - INFO - Database import completed
+2025-04-02 14:21:41,047 - INFO - Starting database import...
+2025-04-02 14:21:41,048 - INFO - Importing daily data from C:\code\cursor_stockalert\stockalert\data\daily.csv...
+2025-04-02 14:21:41,082 - INFO - Inserted 36 records into stocks table for daily
+2025-04-02 14:21:41,083 - INFO - Importing ideas data from C:\code\cursor_stockalert\stockalert\data\ideas.csv...
+2025-04-02 14:21:41,102 - INFO - Inserted 8 records into stocks table for ideas
+2025-04-02 14:21:41,102 - INFO - Importing etfs data from C:\code\cursor_stockalert\stockalert\data\etfs.csv...
+2025-04-02 14:21:41,118 - INFO - Inserted 42 records into stocks table for etfs
+2025-04-02 14:21:41,120 - INFO - Importing digitalassets data from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv...
+2025-04-02 14:21:41,137 - INFO - Inserted 13 records into stocks table for digitalassets
+2025-04-02 14:21:41,137 - INFO - Database import completed
+2025-04-02 14:29:42,597 - INFO - Starting database import...
+2025-04-02 14:29:42,618 - INFO - Deleted all existing records from stocks table
+2025-04-02 14:29:42,619 - INFO - Importing daily data from C:\code\cursor_stockalert\stockalert\data\daily.csv...
+2025-04-02 14:29:42,657 - INFO - Inserted 36 records into stocks table for daily
+2025-04-02 14:29:42,658 - INFO - Importing ideas data from C:\code\cursor_stockalert\stockalert\data\ideas.csv...
+2025-04-02 14:29:42,681 - INFO - Inserted 8 records into stocks table for ideas
+2025-04-02 14:29:42,681 - INFO - Importing etfs data from C:\code\cursor_stockalert\stockalert\data\etfs.csv...
+2025-04-02 14:29:42,708 - INFO - Inserted 42 records into stocks table for etfs
+2025-04-02 14:29:42,708 - INFO - Importing digitalassets data from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv...
+2025-04-02 14:29:42,742 - INFO - Inserted 13 records into stocks table for digitalassets
+2025-04-02 14:29:42,743 - INFO - Database import completed
+2025-04-07 09:52:42,248 - import_all_data - INFO - Starting data import...
+2025-04-07 09:52:42,250 - import_all_data - INFO - Importing daily data from C:\code\cursor_stockalert\stockalert\data\daily.csv...
+2025-04-07 09:52:42,330 - import_all_data - INFO - Successfully imported 36 records for daily
+2025-04-07 09:52:42,332 - import_all_data - INFO - Importing ideas data from C:\code\cursor_stockalert\stockalert\data\ideas.csv...
+2025-04-07 09:52:42,349 - import_all_data - INFO - Successfully imported 8 records for ideas
+2025-04-07 09:52:42,350 - import_all_data - INFO - Importing etfs data from C:\code\cursor_stockalert\stockalert\data\etfs.csv...
+2025-04-07 09:52:42,357 - import_all_data - INFO - Successfully imported 38 records for etfs
+2025-04-07 09:52:42,357 - import_all_data - INFO - Importing digitalassets data from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv...
+2025-04-07 09:52:42,363 - import_all_data - INFO - Successfully imported 13 records for digitalassets
+2025-04-07 09:52:42,363 - import_all_data - INFO - Data import completed
+2025-04-07 09:58:22,401 - INFO - Starting database import...
+2025-04-07 09:58:22,419 - INFO - Deleted all existing records from stocks table
+2025-04-07 09:58:22,420 - INFO - Importing daily data from C:\code\cursor_stockalert\stockalert\data\daily.csv...
+2025-04-07 09:58:22,544 - INFO - Inserted 36 records into stocks table for daily
+2025-04-07 09:58:22,545 - INFO - Importing ideas data from C:\code\cursor_stockalert\stockalert\data\ideas.csv...
+2025-04-07 09:58:22,584 - INFO - Inserted 8 records into stocks table for ideas
+2025-04-07 09:58:22,585 - INFO - Importing etfs data from C:\code\cursor_stockalert\stockalert\data\etfs.csv...
+2025-04-07 09:58:22,701 - INFO - Inserted 38 records into stocks table for etfs
+2025-04-07 09:58:22,702 - INFO - Importing digitalassets data from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv...
+2025-04-07 09:58:22,783 - INFO - Inserted 13 records into stocks table for digitalassets
+2025-04-07 09:58:22,785 - INFO - Database import completed
+2025-04-08 09:26:42,503 - import_all_data - INFO - Starting data import...
+2025-04-08 09:26:42,504 - import_all_data - INFO - Importing daily data from C:\code\cursor_stockalert\stockalert\data\daily.csv...
+2025-04-08 09:26:42,532 - import_all_data - INFO - Successfully imported 34 records for daily
+2025-04-08 09:26:42,532 - import_all_data - INFO - Importing ideas data from C:\code\cursor_stockalert\stockalert\data\ideas.csv...
+2025-04-08 09:26:42,554 - import_all_data - INFO - Successfully imported 8 records for ideas
+2025-04-08 09:26:42,555 - import_all_data - INFO - Importing etfs data from C:\code\cursor_stockalert\stockalert\data\etfs.csv...
+2025-04-08 09:26:42,581 - import_all_data - INFO - Successfully imported 36 records for etfs
+2025-04-08 09:26:42,581 - import_all_data - INFO - Importing digitalassets data from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv...
+2025-04-08 09:26:42,587 - import_all_data - INFO - Successfully imported 13 records for digitalassets
+2025-04-08 09:26:42,587 - import_all_data - INFO - Data import completed
+2025-04-08 09:55:41,663 - INFO - Starting database import...
+2025-04-08 09:55:41,688 - INFO - Deleted all existing records from stocks table
+2025-04-08 09:55:41,689 - INFO - Importing daily data from C:\code\cursor_stockalert\stockalert\data\daily.csv...
+2025-04-08 09:55:41,746 - INFO - Inserted 34 records into stocks table for daily
+2025-04-08 09:55:41,747 - INFO - Importing ideas data from C:\code\cursor_stockalert\stockalert\data\ideas.csv...
+2025-04-08 09:55:41,789 - INFO - Inserted 8 records into stocks table for ideas
+2025-04-08 09:55:41,790 - INFO - Importing etfs data from C:\code\cursor_stockalert\stockalert\data\etfs.csv...
+2025-04-08 09:55:41,848 - INFO - Inserted 36 records into stocks table for etfs
+2025-04-08 09:55:41,849 - INFO - Importing digitalassets data from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv...
+2025-04-08 09:55:41,912 - INFO - Inserted 13 records into stocks table for digitalassets
+2025-04-08 09:55:41,913 - INFO - Database import completed
+2025-04-10 09:12:55,438 - import_all_data - INFO - Starting data import...
+2025-04-10 09:12:55,440 - import_all_data - INFO - Importing daily data from C:\code\cursor_stockalert\stockalert\data\daily.csv...
+2025-04-10 09:12:55,461 - import_all_data - INFO - Successfully imported 34 records for daily
+2025-04-10 09:12:55,462 - import_all_data - INFO - Importing ideas data from C:\code\cursor_stockalert\stockalert\data\ideas.csv...
+2025-04-10 09:12:55,495 - import_all_data - INFO - Successfully imported 8 records for ideas
+2025-04-10 09:12:55,496 - import_all_data - INFO - Importing etfs data from C:\code\cursor_stockalert\stockalert\data\etfs.csv...
+2025-04-10 09:12:55,534 - import_all_data - INFO - Successfully imported 33 records for etfs
+2025-04-10 09:12:55,535 - import_all_data - INFO - Importing digitalassets data from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv...
+2025-04-10 09:12:55,541 - import_all_data - INFO - Successfully imported 13 records for digitalassets
+2025-04-10 09:12:55,542 - import_all_data - INFO - Data import completed
+2025-04-10 09:19:31,760 - INFO - Starting database import...
+2025-04-10 09:19:31,784 - INFO - Deleted all existing records from stocks table
+2025-04-10 09:19:31,785 - INFO - Importing daily data from C:\code\cursor_stockalert\stockalert\data\daily.csv...
+2025-04-10 09:19:31,819 - INFO - Inserted 34 records into stocks table for daily
+2025-04-10 09:19:31,820 - INFO - Importing ideas data from C:\code\cursor_stockalert\stockalert\data\ideas.csv...
+2025-04-10 09:19:31,840 - INFO - Inserted 8 records into stocks table for ideas
+2025-04-10 09:19:31,841 - INFO - Importing etfs data from C:\code\cursor_stockalert\stockalert\data\etfs.csv...
+2025-04-10 09:19:31,881 - INFO - Inserted 33 records into stocks table for etfs
+2025-04-10 09:19:31,882 - INFO - Importing digitalassets data from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv...
+2025-04-10 09:19:31,909 - INFO - Inserted 13 records into stocks table for digitalassets
+2025-04-10 09:19:31,912 - INFO - Database import completed
+2025-04-10 11:46:12,988 - INFO - Starting database import...
+2025-04-10 11:46:13,026 - INFO - Deleted all existing records from stocks table
+2025-04-10 11:46:13,028 - INFO - Importing daily data from C:\code\cursor_stockalert\stockalert\data\daily.csv...
+2025-04-10 11:46:13,117 - INFO - Inserted 34 records into stocks table for daily
+2025-04-10 11:46:13,118 - INFO - Importing ideas data from C:\code\cursor_stockalert\stockalert\data\ideas.csv...
+2025-04-10 11:46:13,177 - INFO - Inserted 8 records into stocks table for ideas
+2025-04-10 11:46:13,179 - INFO - Importing etfs data from C:\code\cursor_stockalert\stockalert\data\etfs.csv...
+2025-04-10 11:46:13,203 - INFO - Inserted 30 records into stocks table for etfs
+2025-04-10 11:46:13,205 - INFO - Importing digitalassets data from C:\code\cursor_stockalert\stockalert\data\digitalassets.csv...
+2025-04-10 11:46:13,252 - INFO - Inserted 13 records into stocks table for digitalassets
+2025-04-10 11:46:13,253 - INFO - Database import completed

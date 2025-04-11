@@ -54,47 +54,65 @@ def update_names(cursor, tickers):
                     break
     return total_updated
 
-def update_prices(conn, cursor, tickers, session):
+def update_prices_in_session(conn, cursor, tickers, session):
     """
-    Batch download same-day price data using yfinance.
-    Uses the latest available price:
-      - For PM sessions after 4PM Eastern, this is the closing price.
-      - Otherwise, uses the current/latest price.
+    Update prices for a batch of tickers in a given session (AM/PM).
     """
-    logger.info(f"Batch updating prices for {len(tickers)} tickers in {session} session...")
-    # Download one day's data for all tickers.
-    # Use 0.5m interval for more frequent updates instea of 1m, which worked!
-    data = yf.download(tickers, period="1d", interval="0.5m", progress=False, group_by='ticker')
-    eastern = pytz.timezone('America/New_York')
-    now = datetime.now(eastern)
-    eastern_time = now.strftime("%Y-%m-%d %H:%M:%S")
+    logger.info(f"Updating prices for {len(tickers)} tickers in {session} session...")
+    yf_params = {
+        "period": "1d",
+        "interval": "1m",
+        "progress": False,
+        "auto_adjust": True,
+        "threads": True,
+        "proxy": None,
+        "prepost": True,
+        "group_by": "ticker",
+    }
+    batch_size = 3
+    delay_between_batches = 30
     total_updated = 0
+    failed_tickers = []
 
-    for ticker in tickers:
-        try:
-            # When multiple tickers, data columns are MultiIndex.
-            if isinstance(data.columns, pd.MultiIndex):
-                df = data[ticker]
-            else:
-                df = data
-            if df.empty:
-                logger.warning(f"No data returned for {ticker}")
-                continue
-
-            # If PM session and after 4PM, use closing price; otherwise, use the latest price.
-            if session == 'PM' and now.time() >= dtime(16, 0):
-                price = df["Close"].iloc[-1]
-            else:
-                price = df["Close"].iloc[-1]
-            cursor.execute(
-                f"UPDATE stocks SET {session}_Price = ?, Last_Price_Update = ? WHERE ticker = ?",
-                (price, eastern_time, ticker)
-            )
-            logger.info(f"{ticker} {session} price updated to {price}")
-            total_updated += 1
-        except Exception as e:
-            logger.error(f"Error processing {ticker}: {e}")
-    conn.commit()
+    for i in range(0, len(tickers), batch_size):
+        batch = tickers[i : i + batch_size]
+        logger.info(f"Processing batch {i // batch_size + 1} of {(len(tickers) - 1) // batch_size + 1}...")
+        attempts = 0
+        max_attempts = 3
+        data = None
+        
+        while attempts < max_attempts and data is None:
+            try:
+                data = yf.download(batch, **yf_params)
+                break
+            except Exception as e:
+                if "Rate" in str(e):
+                    wait = 10 * (attempts + 1)
+                    logger.warning(f"Rate limit, retrying in {wait} seconds (attempt {attempts + 1}/{max_attempts})")
+                    time.sleep(wait)
+                    attempts += 1
+                else:
+                    logger.error(f"Error downloading batch: {e}")
+                    break
+        
+        if data is None or data.empty:
+            logger.warning(f"No data returned for batch {i // batch_size + 1}")
+            failed_tickers.extend(batch)
+        else:
+            for ticker in batch:
+                try:
+                    df = data[ticker] if isinstance(data.columns, pd.MultiIndex) else data
+                    price = df["Close"].iloc[-1]
+                    cursor.execute(
+                        f"UPDATE stocks SET {session}_Price = ?, Last_Price_Update = ? WHERE ticker = ?",
+                        (price, datetime.now(pytz.timezone("America/New_York")).strftime("%Y-%m-%d %H:%M:%S"), ticker),
+                    )
+                    total_updated += 1
+                except Exception as e:
+                    logger.error(f"Error processing {ticker}: {e}")
+                    failed_tickers.append(ticker)
+            conn.commit()
+        time.sleep(delay_between_batches)
     logger.info(f"Updated prices for {total_updated} tickers in {session} session")
     return total_updated
 
@@ -135,7 +153,7 @@ def force_price_update(session, update_names_flag=False, run_alerts_flag=True, u
         conn.commit()
 
     if update_prices_flag:
-        update_prices(conn, cursor, tickers, session)
+        update_prices_in_session(conn, cursor, tickers, session)
         logger.info(f"Sample updated {price_col} values:")
         for t in sample:
             cursor.execute(f"SELECT ticker, {price_col}, Last_Price_Update FROM stocks WHERE ticker = ?", (t,))
