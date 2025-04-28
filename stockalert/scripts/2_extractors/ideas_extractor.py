@@ -3,10 +3,11 @@ import os
 from pathlib import Path
 from pydantic import BaseModel
 import pandas as pd
-from mistralai import Mistral
+import requests
 from datetime import datetime
 import base64
 import re
+import json
 
 # Add the project root to Python path when running directly
 if __name__ == "__main__":
@@ -33,142 +34,130 @@ class IdeasData(BaseModel):
 class IdeasEmailExtractor(BaseEmailExtractor):
     def __init__(self):
         super().__init__()
-        
-        # Initialize Mistral client for OCR and parsing
-        mistral_api_key = get_env('MISTRAL_API_KEY')
-        if not mistral_api_key:
+        self.mistral_api_key = get_env('MISTRAL_API_KEY')
+        if not self.mistral_api_key:
             raise ValueError("MISTRAL_API_KEY environment variable not set")
-        
-        self.mistral_client = Mistral(api_key=mistral_api_key)
-    
+
     def process_image(self, image_path):
         """Process image using Mistral OCR API"""
         try:
-            # Ensure the image path exists
             if not os.path.exists(image_path):
                 print(f"Error: Image file not found at {image_path}")
                 return []
-                
-            # Read the image file
             with open(image_path, 'rb') as f:
                 image_bytes = f.read()
-                
-            # Convert the image to a data URL for Mistral OCR
             image_base64 = base64.b64encode(image_bytes).decode('utf-8')
             data_url = f"data:image/png;base64,{image_base64}"
-            
-            # Process OCR to get markdown output
             print("Processing with Mistral OCR...")
-            try:
-                # Use the ocr.process method directly as in etf_extractor.py
-                from mistralai import ImageURLChunk
-                
-                ocr_response = self.mistral_client.ocr.process(
-                    document=ImageURLChunk(image_url=data_url), 
-                    model="mistral-ocr-latest"
-                )
-                ocr_md = ocr_response.pages[0].markdown
-                print(f"Successfully extracted text with mistral-ocr-latest")
-                print("\nRaw OCR Text:")
-                print(ocr_md[:500] + "..." if len(ocr_md) > 500 else ocr_md)
-                
-            except Exception as e:
-                print(f"Error with OCR processing: {str(e)}")
-                print("OCR processing failed. Unable to extract text from image.")
+            url = "https://api.mistral.ai/v1/ocr"
+            headers = {
+                "Authorization": f"Bearer {self.mistral_api_key}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "document": {"image_url": data_url},
+                "model": "mistral-ocr-latest"
+            }
+            response = requests.post(url, headers=headers, json=payload)
+            if response.status_code == 200:
+                ocr_response = response.json()
+                ocr_md = ocr_response["pages"][0]["markdown"]
+            else:
+                print(f"Error processing OCR: {response.text}")
                 return []
-            
-            # Try manual parsing first
-            ideas_data = self.manual_parse_ocr_text(ocr_md)
-            
-            # If manual parsing doesn't work, try the chat API
-            if not ideas_data or len(ideas_data) < 3:
-                print("Manual parsing extracted too few ideas, using Mistral API for assistance...")
-                # Prompt to convert OCR markdown to structured ideas JSON
-                prompt = f"""
-                Below is the OCR output in markdown format from a stock ideas table image. The table is split into two sections: "Longs" (BULLISH stocks) and "Shorts" (BEARISH stocks).
-
-                Each row in the table contains:
-                - Stock ticker (e.g., AAPL, MSFT)
-                - Closing price
-                - Buy Trade price
-                - Sell Trade price
-                - Other information like upside/downside percentages
-
-                Text from OCR:
-                <BEGIN_IMAGE_OCR>
-                {ocr_md}
-                <END_IMAGE_OCR>
-
-                I need you to carefully extract ALL stock tickers from BOTH the Longs and Shorts sections, along with their corresponding Buy Trade and Sell Trade values.
-
-                Extract the actual values from the OCR text. DO NOT use any hardcoded values or make up data.
-
-                Convert this into a structured JSON response with the following format:
-                {{
-                    "assets": [
-                        {{
-                            "ticker": "AAPL",
-                            "sentiment": "BULLISH" if in Longs section, "BEARISH" if in Shorts section,
-                            "buy_trade": extracted buy trade value as float,
-                            "sell_trade": extracted sell trade value as float,
-                            "category": "ideas"
-                        }},
-                        ... and so on for all stocks found in the OCR text
-                    ]
-                }}
-
-                Rules:
-                - Include ALL stocks found in the OCR text
-                - Set sentiment to "BULLISH" for stocks in the Longs section and "BEARISH" for stocks in the Shorts section
-                - Format numbers as floats without commas (e.g., 150.67, not $150.67)
-                - Set category to "ideas" for all stocks
-                - Return ONLY the JSON object, no other text
-                """
-                
-                # Get structured data from Mistral
-                chat_response = self.mistral_client.chat.parse(
-                    model="ministral-8b-latest",
-                    messages=[{"role": "user", "content": prompt}],
-                    response_format=IdeasData,
-                    temperature=0
-                )
-                
-                # Get the parsed data
-                ideas_data = chat_response.choices[0].message.parsed
-                
-                # Convert to dictionary
-                ideas_dict = ideas_data.model_dump()
-                ideas_data = ideas_dict["assets"]
-            
-            # Create CSV data
-            csv_data = [
-                {
-                    "ticker": asset["ticker"],
-                    "sentiment": asset["sentiment"],
-                    "buy_trade": asset["buy_trade"],
-                    "sell_trade": asset["sell_trade"],
-                    "category": asset["category"]
-                }
-                for asset in ideas_data
-            ]
-            
-            # Create a DataFrame and save to CSV
-            df = pd.DataFrame(csv_data)
             project_root = Path(__file__).parent.parent.parent
             data_dir = project_root / 'data'
-            csv_path = data_dir / 'ideas.csv'
-            df.to_csv(csv_path, index=False)
-            print(f"Saved ideas data to: {csv_path}")
-            print(f"Total tickers extracted: {len(csv_data)}")
-            
+            ocr_text_path = data_dir / 'ideas_ocr_text.md'
+            with open(ocr_text_path, 'w', encoding='utf-8') as f:
+                f.write(ocr_md)
+            print(f"Saved OCR text to: {ocr_text_path}")
+            print("\nSample OCR Text (first 500 chars):")
+            print(ocr_md[:500] + "..." if len(ocr_md) > 500 else ocr_md)
+
+            # Try manual parsing first
+            ideas_data = self.manual_parse_ocr_text(ocr_md)
+            if not ideas_data or len(ideas_data) < 3:
+                print("Manual parsing extracted too few ideas, using Mistral API for assistance...")
+                prompt = f"""
+Below is the OCR output in markdown format from a stock ideas table image. The table is split into two sections: 'Longs' (BULLISH stocks) and 'Shorts' (BEARISH stocks).
+Each row in the table contains:
+- Stock ticker (e.g., AAPL, MSFT)
+- Closing price
+- Buy Trade price
+- Sell Trade price
+- Other information like upside/downside percentages
+Text from OCR:
+<BEGIN_IMAGE_OCR>
+{ocr_md}
+<END_IMAGE_OCR>
+I need you to carefully extract ALL stock tickers from BOTH the Longs and Shorts sections, along with their corresponding Buy Trade and Sell Trade values.
+Extract the actual values from the OCR text. DO NOT use any hardcoded values or make up data.
+Convert this into a structured JSON response with the following format:
+{{
+    "assets": [
+        {{
+            "ticker": "AAPL",
+            "sentiment": "BULLISH" if in Longs section, "BEARISH" if in Shorts section,
+            "buy_trade": extracted buy trade value as float,
+            "sell_trade": extracted sell trade value as float,
+            "category": "ideas"
+        }},
+        ...
+    ]
+}}
+Rules:
+- Include ALL stocks found in the OCR text
+- Set sentiment to "BULLISH" for stocks in the Longs section and "BEARISH" for stocks in the Shorts section
+- Format numbers as floats without commas (e.g., 150.67, not $150.67)
+- Set category to "ideas" for all stocks
+- Return ONLY the JSON object, no other text
+"""
+                chat_url = "https://api.mistral.ai/v1/chat/completions"
+                chat_headers = {
+                    "Authorization": f"Bearer {self.mistral_api_key}",
+                    "Content-Type": "application/json"
+                }
+                chat_payload = {
+                    "model": "mistral-large-latest",
+                    "messages": [{"role": "user", "content": prompt}]
+                }
+                chat_response = requests.post(chat_url, headers=chat_headers, json=chat_payload)
+                if chat_response.status_code == 200:
+                    chat_data = chat_response.json()
+                    response_content = chat_data["choices"][0]["message"]["content"]
+                    try:
+                        ideas_dict = json.loads(response_content)
+                        ideas_data = ideas_dict["assets"]
+                    except Exception as e:
+                        print(f"Error parsing JSON from Mistral chat response: {e}")
+                        ideas_data = []
+                else:
+                    print(f"Error using Mistral API for structured parsing: {chat_response.text}")
+                    ideas_data = []
+            # Save to CSV
+            if ideas_data:
+                csv_data = [
+                    {
+                        "ticker": asset["ticker"],
+                        "sentiment": asset["sentiment"],
+                        "buy_trade": asset["buy_trade"],
+                        "sell_trade": asset["sell_trade"],
+                        "category": asset["category"]
+                    }
+                    for asset in ideas_data
+                ]
+                df = pd.DataFrame(csv_data)
+                csv_path = data_dir / 'ideas.csv'
+                df.to_csv(csv_path, index=False)
+                print(f"Saved ideas data to: {csv_path}")
+                print(f"Total tickers extracted: {len(csv_data)}")
             return ideas_data
-            
         except Exception as e:
             print(f"Error processing image: {e}")
             import traceback
             traceback.print_exc()
             return []
-    
+
     def manual_parse_ocr_text(self, ocr_text):
         """Manually parse OCR text to extract ideas assets"""
         assets = []

@@ -6,7 +6,7 @@ import re
 from pathlib import Path
 from pydantic import BaseModel
 import pandas as pd
-from mistralai import Mistral, ImageURLChunk
+import requests, json
 from dotenv import load_dotenv
 from stockalert.utils.env_loader import get_env
 
@@ -48,7 +48,7 @@ class ETFEmailExtractor(BaseEmailExtractor):
         # Create data directory if it doesn't exist
         self.data_dir.mkdir(exist_ok=True)
         
-        self.mistral_client = Mistral(api_key=get_env('MISTRAL_API_KEY'))
+        self.mistral_api_key = get_env('MISTRAL_API_KEY')
 
     def extract_image_from_email(self):
         """Extract the ETF table image from the most recent email with 'ETF Pro Plus - Levels' in subject"""
@@ -290,97 +290,150 @@ class ETFEmailExtractor(BaseEmailExtractor):
             return None
 
     def process_image(self, image_data):
-        """Process image using Mistral OCR API"""
+        """Process image using Mistral OCR API and return parsed ETF data"""
         try:
-            # Convert image to base64
-            image_base64 = base64.b64encode(image_data).decode()
-            data_url = f"data:image/png;base64,{image_base64}"
-            
-            # Process OCR to get markdown output
+            # Save the image for debugging
+            temp_image_path = self.data_dir / 'etf_table.png'
+            with open(temp_image_path, 'wb') as f:
+                f.write(image_data)
+
+            # Send image to Mistral OCR API using the same payload as crypto_extractor
+            headers = {
+                "Authorization": f"Bearer {self.mistral_api_key}",
+                "Content-Type": "application/json"
+            }
             print("Processing with Mistral OCR...")
-            ocr_response = self.mistral_client.ocr.process(
-                document=ImageURLChunk(image_url=data_url), 
-                model="mistral-ocr-latest"
+            image_base64_str = base64.b64encode(image_data).decode('utf-8')
+            data_url = f"data:image/png;base64,{image_base64_str}"
+            payload = {
+                "document": {"image_url": data_url},
+                "model": "mistral-ocr-latest"
+            }
+            ocr_response = requests.post(
+                "https://api.mistral.ai/v1/ocr",
+                headers=headers,
+                json=payload
             )
-            ocr_md = ocr_response.pages[0].markdown
-            print("\nRaw OCR Text:")
-            print(ocr_md)
-            
-            # Prompt to convert OCR markdown to structured ETF JSON
-            prompt = f"""
-            Below is the OCR output in markdown format from an ETF table image. The table is divided into two sections:
-            1. BULLISH section (from start until "BEARISH" header)
-            2. BEARISH section (from "BEARISH" header until end)
+            if ocr_response.status_code != 200:
+                print(f"OCR API Error: {ocr_response.status_code} - {ocr_response.text}")
+                return []
+            ocr_data = ocr_response.json()
+            ocr_md = ocr_data['pages'][0]['markdown']
+            # Save OCR markdown for debugging
+            ocr_text_path = self.data_dir / 'etf_ocr_text.md'
+            with open(ocr_text_path, 'w', encoding='utf-8') as f:
+                f.write(ocr_md)
+            print(f"Saved OCR text to: {ocr_text_path}")
+            print("\nSample OCR Text (first 500 chars):")
+            print(ocr_md[:500] + "..." if len(ocr_md) > 500 else ocr_md)
 
-            Text from OCR:
-            <BEGIN_IMAGE_OCR>
-            {ocr_md}
-            <END_IMAGE_OCR>
-
-            Convert this into a structured JSON response. For each ETF entry:
-            1. Extract ticker (3-4 letter code)
-            2. Set sentiment based on which section it appears in (BULLISH/BEARISH)
-            3. Get buy_trade (first $ amount in TREND RANGES)
-            4. Get sell_trade (second $ amount in TREND RANGES)
-            5. Set category to "etfs"
-
-            Return the data in this exact JSON format:
-            {{
-                "assets": [
-                    {{
-                        "ticker": "XYZ",         # 3-4 letter code
-                        "sentiment": "BULLISH",   # BULLISH if before BEARISH header, BEARISH if after
-                        "buy_trade": 100.50,     # First $ amount in trend range
-                        "sell_trade": 105.75,    # Second $ amount in trend range
-                        "category": "etfs"       # Always "etfs"
-                    }}
-                ]
-            }}
-
-            Rules:
-            - Pay careful attention to the BULLISH/BEARISH sections
-            - Only include valid ETF entries with proper ticker symbols
-            - Prices must be valid numbers
-            - Format numbers as floats (e.g., 100.50, not $100.50)
-            - Return ONLY the JSON object, no other text
-            """
-            
-            # Get structured data from Mistral
-            chat_response = self.mistral_client.chat.parse(
-                model="ministral-8b-latest",
-                messages=[{"role": "user", "content": prompt}],
-                response_format=ETFData,
-                temperature=0
-            )
-            
-            # Get the parsed data
-            etf_data = chat_response.choices[0].message.parsed
-            
-            # Convert to dictionary
-            etf_dict = etf_data.model_dump()
-            
-            # Create CSV data
-            csv_data = [
-                {
-                    "ticker": asset["ticker"],
-                    "sentiment": asset["sentiment"],
-                    "buy_trade": asset["buy_trade"],
-                    "sell_trade": asset["sell_trade"],
-                    "category": asset["category"]
-                }
-                for asset in etf_dict["assets"]
-            ]
-            
+            # Try direct parsing, fallback to LLM if needed
+            assets = self.parse_markdown_table(ocr_md)
+            if len(assets) < 1:
+                print("Direct parsing extracted too few assets, using Mistral API for assistance...")
+                assets = self.parse_with_mistral_api(ocr_md)
             # Save to CSV
-            df = pd.DataFrame(csv_data)
-            df.to_csv(self.output_file, index=False)
-            print(f"\nSaved ETF data to: {self.output_file}")
-            
-            return etf_dict["assets"]
-            
+            if assets:
+                df = pd.DataFrame(assets)
+                df.to_csv(self.output_file, index=False)
+                print(f"\nSaved ETF data to: {self.output_file}")
+            return assets
         except Exception as e:
             print(f"Error processing image: {e}")
             return []
+
+    def parse_markdown_table(self, markdown_table):
+        """Parse ETF markdown table into structured data (direct method)"""
+        assets = []
+        lines = markdown_table.split('\n')
+        current_sentiment = None
+        for line in lines:
+            # Detect sentiment section headers
+            if line.strip().startswith('| BULLISH'):
+                current_sentiment = 'BULLISH'
+                continue
+            elif line.strip().startswith('| BEARISH'):
+                current_sentiment = 'BEARISH'
+                continue
+            # Skip header and separator lines
+            if not line.strip() or line.startswith('| :--:') or line.startswith('*All ETF') or 'TICKER' in line:
+                continue
+            # Parse data rows
+            parts = [p.strip() for p in line.split('|')[1:-1]]
+            if len(parts) < 7:
+                continue
+            try:
+                ticker = parts[1]
+                sentiment = current_sentiment if current_sentiment else 'UNKNOWN'
+                # Trend Ranges: last two columns (parts[4], parts[5])
+                import re
+                def clean_number(s):
+                    # Remove anything that's not a digit, period, or minus sign
+                    return re.sub(r'[^0-9.\-]', '', s)
+                buy_str = clean_number(parts[4])
+                sell_str = clean_number(parts[5])
+                buy_trade = float(buy_str) if buy_str else None
+                sell_trade = float(sell_str) if sell_str else None
+                if ticker and buy_trade is not None and sell_trade is not None:
+                    asset = {
+                        "ticker": ticker,
+                        "sentiment": sentiment,
+                        "buy_trade": buy_trade,
+                        "sell_trade": sell_trade,
+                        "category": "etfs"
+                    }
+                    assets.append(asset)
+            except (ValueError, IndexError) as e:
+                print(f"Skipping malformed row: {line} - Error: {e}")
+                continue
+        print(f"Parsed {len(assets)} ETF assets from OCR text")
+        return assets
+
+    def parse_with_mistral_api(self, ocr_md):
+        print("Using Mistral API to parse OCR text...")
+        prompt = f"""
+Below is the OCR output in markdown format from an ETF table image. Extract all ETF assets and return a JSON object with the format:
+{{
+    "assets": [
+        {{
+            "ticker": "SPY",
+            "sentiment": "BULLISH or BEARISH",
+            "buy_trade": <float>,
+            "sell_trade": <float>,
+            "category": "etfs"
+        }},
+        ...
+    ]
+}}
+Text from OCR:
+<BEGIN_IMAGE_OCR>
+{ocr_md}
+<END_IMAGE_OCR>
+"""
+        try:
+            url = "https://api.mistral.ai/v1/chat/completions"
+            headers = {
+                "Authorization": f"Bearer {self.mistral_api_key}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "model": "mistral-large-latest",
+                "messages": [{"role": "user", "content": prompt}]
+            }
+            response = requests.post(url, headers=headers, json=payload)
+            if response.status_code == 200:
+                chat_data = response.json()
+                response_content = chat_data["choices"][0]["message"]["content"]
+                etf_data = json.loads(response_content)
+                etf_assets = etf_data.get("assets", [])
+            else:
+                print(f"Error using Mistral API for structured parsing: {response.text}")
+                etf_assets = self.parse_markdown_table(ocr_md)
+        except Exception as e:
+            print(f"Error using Mistral API for structured parsing: {e}")
+            print("Falling back to direct extraction...")
+            etf_assets = self.parse_markdown_table(ocr_md)
+        return etf_assets
             
     def cleanup_temp_files(self):
         """Clean up temporary files created during extraction"""

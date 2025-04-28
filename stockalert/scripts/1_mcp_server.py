@@ -7,7 +7,7 @@ from typing import Optional
 
 # Add the project root to Python path
 project_root = str(Path(__file__).parent.parent.parent)
-if project_root not in sys.path:
+if (project_root not in sys.path):
     sys.path.insert(0, project_root)
 
 from fastapi import FastAPI, HTTPException, BackgroundTasks
@@ -21,6 +21,7 @@ import uvicorn
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from contextlib import asynccontextmanager
 
 from stockalert.utils.env_loader import get_env
 
@@ -261,15 +262,9 @@ class MCPServer:
             return False
 
 # FastAPI application
-app = FastAPI(title="Stock Alert MCP Server", 
-              description="Mail Client Protocol Server for Gmail interactions")
-
-# Global MCP server instance
-mcp_server = None
-
-@app.on_event("startup")
-def startup_event():
-    """Initialize the MCP server on startup"""
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan event handler to initialize MCP server."""
     global mcp_server
     try:
         mcp_server = MCPServer()
@@ -278,6 +273,19 @@ def startup_event():
         logger.error(f"Error initializing MCP server on startup: {e}")
         import traceback
         logger.error(traceback.format_exc())
+    yield
+    # (Optional) Add any cleanup code here if needed
+
+app = FastAPI(
+    title="Stock Alert MCP Server",
+    description="Mail Client Protocol Server for Gmail interactions",
+    lifespan=lifespan
+)
+
+# Remove the deprecated on_event startup handler
+# @app.on_event("startup")
+# def startup_event():
+#     ...existing code...
 
 @app.get("/")
 def root():

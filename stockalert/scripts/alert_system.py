@@ -290,9 +290,9 @@ class AlertSystem:
                     <th>Ticker</th>
                     <th>Name</th>
                     <th>Category</th>
+                    <th>Sentiment</th>
                     <th>Current Price</th>
                     <th>Target Price</th>
-                    <th>Distance</th>
                 </tr>
             """
             
@@ -302,9 +302,9 @@ class AlertSystem:
                     <td><strong>{alert['ticker']}</strong></td>
                     <td>{alert['name']}</td>
                     <td>{alert['category']}</td>
+                    <td>{alert['sentiment']}</td>
                     <td>${alert['current_price']:.2f}</td>
                     <td>${alert['threshold']:.2f}</td>
-                    <td>{alert['price_pct']:.2f}%</td>
                 </tr>
                 """
             

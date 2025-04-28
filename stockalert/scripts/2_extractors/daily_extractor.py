@@ -40,29 +40,7 @@ class DailyExtractor(BaseEmailExtractor):
     def __init__(self):
         super().__init__()
         self.ticker_mappings = {
-            'UST30Y': '^TYX',
-            'UST10Y': '^TNX',
-            'UST2Y': '2YY=F',
-            'SPX': '^GSPC',
-            'COMPQ': '^IXIC',
-            'RUT': '^RUT',
-            'SSEC': '000001.SS',
-            'NIKK': '^N225',
-            'BSE': '^BSESN',
-            'DAX': '^GDAXI',
-            'VIX': '^VIX',
-            'USD': 'DX-Y.NYB',
-            'EUR/USD': 'EURUSD=X',
-            'USD/YEN': 'JPY=X',
-            'GBP/USD': 'GBPUSD=X',
-            'CAD/USD': 'CADUSD=X',
-            'WTIC': 'CL=F',
-            'BRENT': 'BZ=F',
-            'NATGAS': 'NG=F',
-            'GOLD': 'GC=F',
-            'COPPER': 'HG=F',
-            'SILVER': 'SI=F',
-            'BITCOIN': 'BTC-USD'
+
         }
 
     def get_ticker_name(self, ticker):
@@ -243,6 +221,11 @@ class DailyExtractor(BaseEmailExtractor):
                                 
                                 # Add to parsed data
                                 mapped_ticker = self.ticker_mappings.get(ticker, ticker)
+                                exclude_tickers = {
+                                    'UST30Y','UST10Y','UST2Y','SPX','COMPQ','RUT','SSEC','NIKK','BSE','DAX','VIX','USD','EUR/USD','USD/YEN','GBP/USD','CAD/USD','WTIC','BRENT','NATGAS','GOLD','COPPER','SILVER','BITCOIN'
+                                }
+                                if ticker in exclude_tickers:
+                                    continue
                                 parsed_data.append({
                                     'ticker': mapped_ticker,
                                     'sentiment': sentiment,
@@ -341,6 +324,12 @@ class DailyExtractor(BaseEmailExtractor):
                             
                             # Add to parsed data
                             mapped_ticker = self.ticker_mappings.get(ticker, ticker)
+                            exclude_tickers = {
+                                'UST30Y','UST10Y','UST2Y','SPX','COMPQ','RUT','SSEC','NIKK','BSE','DAX','VIX','USD','EUR/USD','USD/YEN','GBP/USD','WTIC','BRENT','NATGAS','GOLD','COPPER','SILVER'
+                            }
+                            if ticker in exclude_tickers:
+                                i += 1
+                                continue
                             parsed_data.append({
                                 'ticker': mapped_ticker,
                                 'sentiment': sentiment,
@@ -475,6 +464,12 @@ class DailyExtractor(BaseEmailExtractor):
                         
                         # Add to table data
                         mapped_ticker = self.ticker_mappings.get(ticker, ticker)
+                        # Exclude unwanted tickers
+                        exclude_tickers = {
+                            'UST30Y','UST10Y','UST2Y','SPX','COMPQ','RUT','SSEC','NIKK','BSE','DAX','VIX','USD','EUR/USD','USD/YEN','GBP/USD','WTIC','BRENT','NATGAS','GOLD','COPPER','SILVER'
+                        }
+                        if ticker in exclude_tickers:
+                            continue
                         table_data.append({
                             'ticker': mapped_ticker,
                             'sentiment': sentiment,
@@ -596,6 +591,11 @@ class DailyExtractor(BaseEmailExtractor):
         
         # Parse the test data
         parsed_data = self.parse_content(test_data)
+        # Exclude unwanted tickers from create_test_data
+        exclude_tickers = {
+            'UST30Y','UST10Y','UST2Y','SPX','COMPQ','RUT','SSEC','NIKK','BSE','DAX','VIX','USD','EUR/USD','USD/YEN','GBP/USD','WTIC','BRENT','NATGAS','GOLD','COPPER','SILVER'
+        }
+        parsed_data = [item for item in parsed_data if item['ticker'] not in exclude_tickers]
         
         if parsed_data:
             logger.info("Test parsing successful!")
@@ -644,6 +644,11 @@ class DailyExtractor(BaseEmailExtractor):
         
         # Parse the sample data directly
         parsed_data = self.parse_direct_format(sample_data)
+        # Exclude unwanted tickers from test_with_sample
+        exclude_tickers = {
+            'UST30Y','UST10Y','UST2Y','SPX','COMPQ','RUT','SSEC','NIKK','BSE','DAX','VIX','USD','EUR/USD','USD/YEN','GBP/USD','WTIC','BRENT','NATGAS','GOLD','COPPER','SILVER'
+        }
+        parsed_data = [item for item in parsed_data if item['ticker'] not in exclude_tickers]
         
         if parsed_data:
             logger.info("Sample data parsing successful!")
@@ -716,9 +721,8 @@ class DailyExtractor(BaseEmailExtractor):
             for file_path in temp_files:
                 if file_path.exists():
                     try:
-                        # Comment out the actual deletion for safety
-                        # file_path.unlink()
-                        logger.debug(f"Would delete temporary file: {file_path}")
+                        file_path.unlink()
+                        logger.debug(f"Deleted temporary file: {file_path}")
                     except Exception as e:
                         logger.warning(f"Could not delete temporary file {file_path}: {e}")
             
