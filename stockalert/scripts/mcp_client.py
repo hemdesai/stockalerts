@@ -8,7 +8,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(Path(__file__).parent.parent / 'data' / 'mcp_client.log'),
+        logging.FileHandler(Path(__file__).parent.parent.parent / 'logs' / 'mcp_client.log'),
         logging.StreamHandler()
     ]
 )

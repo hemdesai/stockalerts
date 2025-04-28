@@ -17,7 +17,7 @@ import asyncio
 from ib_async import IB, Stock, Index, Forex, Crypto, Future, Bond
 
 DB_PATH = Path(__file__).parent.parent / 'data' / 'stocks.db'
-LOG_FILE = Path(__file__).parent / 'ibkr_price_update_async.log'
+LOG_FILE = Path(__file__).resolve().parent.parent.parent / 'logs' / '4_prices_ibkr.log'
 
 logging.basicConfig(filename=LOG_FILE, level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 logger = logging.getLogger(__name__)

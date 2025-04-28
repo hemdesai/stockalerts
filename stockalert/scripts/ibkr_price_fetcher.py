@@ -21,7 +21,7 @@ from ib_async import IB, Stock, Crypto
 # Configure paths
 SCRIPT_DIR = Path(__file__).parent
 DB_PATH = SCRIPT_DIR.parent / 'data' / 'stocks.db'
-LOG_FILE = SCRIPT_DIR.parent / 'data' / 'ibkr_price_fetcher.log'
+LOG_FILE = SCRIPT_DIR.parent.parent / 'logs' / 'ibkr_price_fetcher.log'
 
 # Configure logging
 logging.basicConfig(

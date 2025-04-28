@@ -33,25 +33,29 @@ A comprehensive stock and digital assets tracking and alerting system that extra
 ## Project Structure
 
 ```
-stockalert/
-├── dashboard.py               # Streamlit dashboard
-├── data/                      # Data storage directory
-├── env_template.txt           # Template for environment variables
-├── requirements.txt           # Python dependencies
-├── scripts/
-│   ├── alert_scheduler.py     # Scheduling for alerts
-│   ├── alert_system.py        # Alert generation logic
-│   ├── csv_notification_service.py  # Email notifications for CSV updates
-│   ├── data_import_scheduler.py     # Scheduling for data imports
-│   ├── db_manager.py          # Database operations
-│   ├── email_extractors/      # Email data extraction modules
-│   │   ├── crypto_extractor.py  # Cryptocurrency data extraction
-│   │   ├── etf_extractor.py     # ETF data extraction
-│   │   └── ideas_extractor.py   # Trading ideas extraction
-│   └── email_service.py       # Email sending service
-└── utils/
-    └── env_loader.py          # Environment variable management
+cursor_stockalert/
+├── .env                      # Single consolidated environment file (root)
+├── .gitignore                # Central ignore file (covers logs, venv, data, etc.)
+├── logs/                     # All application logs centralized here
+├── requirements.txt          # Python dependencies
+├── README.md                 # Project documentation
+├── stockalert/               # Main application package
+│   ├── credentials/          # Service and app credentials (not in version control)
+│   ├── data/                 # SQLite DB and data files (gitignored)
+│   ├── scripts/              # All core scripts and modules
+│   │   ├── alert_system.py   # Alert generation logic
+│   │   ├── 4_prices_ibkr.py  # IBKR async price updater
+│   │   ├── 5_send_alerts.py  # Alert sending script
+│   │   ├── ...               # Other scripts (see folder)
+│   ├── utils/                # Shared utilities (env_loader, etc.)
+│   └── ...                   # Other app modules
+└── venv/ or .venv/           # Python virtual environment (gitignored)
 ```
+
+- **All logs are written to `logs/` at the repo root.**
+- **Only one `.env` file at the root is used for all scripts.**
+- **No duplicate or legacy folders; everything is consolidated for clarity.**
+- **All caches and pyc files are gitignored and excluded from source control.**
 
 ## Setup
 
@@ -72,13 +76,16 @@ stockalert/
    ```
    Edit the `.env` file with your specific configuration.
 
-4. Run the dashboard:
-   ```
-   cd stockalert
-   streamlit run dashboard.py
-   ```
+4. **Ensure IBKR Gateway is running:**
+    - Before running any scripts that fetch live prices (e.g., 4_prices_ibkr.py or 5_send_alerts.py), make sure the IBKR Gateway is open and accessible on your machine. Without this, price fetching will fail.
 
-5. Set up scheduled tasks:
+5. Run the dashboard:
+    ```
+    cd stockalert
+    streamlit run dashboard.py
+    ```
+
+6. Set up scheduled tasks:
    ```
    python -m stockalert.scripts.data_import_scheduler --run-scheduler
    ```

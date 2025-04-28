@@ -26,7 +26,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler("alert_system.log"),
+        logging.FileHandler(Path(__file__).parent.parent.parent / 'logs' / 'alert_system.log'),
         logging.StreamHandler()
     ]
 )

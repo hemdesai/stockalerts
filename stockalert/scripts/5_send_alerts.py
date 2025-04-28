@@ -27,7 +27,7 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.FileHandler(Path(project_root) / "data" / "send_alerts.log"),
+        logging.FileHandler(Path(project_root) / "logs" / "send_alerts.log"),
         logging.StreamHandler()
     ]
 )
