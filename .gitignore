@@ -2,9 +2,12 @@
 .env
 *.env
 
-# Service account credentials
-service_account.json
+# Credentials
+stockalert/credentials/credentials.json
+stockalert/credentials/token.json
+stockalert/credentials/service_account.json
 *service_account*.json
+
 
 # Python cache files
 __pycache__/
