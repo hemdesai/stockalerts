@@ -10,8 +10,7 @@ project_root = str(Path(__file__).parent.parent.parent)
 if (project_root not in sys.path):
     sys.path.insert(0, project_root)
 
-from fastapi import FastAPI, HTTPException, BackgroundTasks
-from fastapi.responses import JSONResponse
+from fastapi import FastAPI, HTTPException
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build

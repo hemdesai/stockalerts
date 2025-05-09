@@ -316,78 +316,218 @@ class CryptoEmailExtractor:
                 })
                 print(f"Added {mapped_ticker} with buy={buy_trade}, sell={sell_trade}, sentiment={sentiment}")
             else:
-                print(f"Could not find valid TRADE data for {current_ticker}.")
-        print(f"Parsed {len(assets)} assets from RISK RANGES section")
-        return assets
-
-    def parse_derivative_exposures_section(self, ocr_md):
-        print("Parsing DIRECT & DERIVATIVE EXPOSURES section...")
-        assets = []
-        lines = ocr_md.split('\n')
-        
-        # Skip separator rows and empty lines
-        data_lines = [line.strip() for line in lines if line.strip() and not line.strip().startswith('| :--:')]
-        
-        for line in data_lines:
             if not line or '|' not in line:
                 continue
-                
+            print(f"Processing table row: {line}")
             parts = [part.strip() for part in line.split('|') if part.strip()]
-            if len(parts) < 4:  # Need at least ticker, price, buy, sell
+            if len(parts) < 3:
                 continue
-                
             ticker = parts[0].strip()
-            if not re.match(r'^[A-Z]{1,5}$', ticker) or ticker == "TICKER":  # Skip header row
+            if not re.match(r'^[A-Z]{2,5}$', ticker):
                 continue
-                
+            buy_trade = None
+            sell_trade = None
+            sentiment = "BEARISH"
             try:
-                # Extract numbers, handling LaTeX formatting
-                number_pattern = r'(?:\$?(?:\\begin\{gathered\})?(?:\\text\s*\{[^}]*\})?[\s\\\{\}]*)?(\d+\.?\d*)(?:[\s\\\}\%]*\\end\{gathered\})?'
-                
-                # Find all numbers in the line
-                all_numbers = []
-                for part in parts:
-                    found_numbers = re.findall(number_pattern, part)
-                    all_numbers.extend([float(n) for n in found_numbers if n])
-                
-                if len(all_numbers) >= 3:  # Need price, buy, sell at minimum
-                    # Usually the second number is buy trade and third is sell trade
-                    buy_trade = all_numbers[1]  # Buy trade is usually the second number
-                    sell_trade = all_numbers[2]  # Sell trade is usually the third number
-                    
-                    # Determine sentiment from the last part which contains TREND SIGNAL
-                    sentiment = "NEUTRAL"
-                    trend_part = parts[-1].upper()  # Last column should be TREND SIGNAL
-                    if "BULLISH" in trend_part:
-                        sentiment = "BULLISH"
-                    elif "BEARISH" in trend_part:
+                buy_match = re.search(r'(\d+\.?\d*)', parts[2])
+                if buy_match:
+                    buy_trade = float(buy_match.group(1).replace(',', ''))
+                sell_match = re.search(r'(\d+\.?\d*)', parts[3])
+                if sell_match:
+                    sell_trade = float(sell_match.group(1).replace(',', ''))
+                if len(parts) >= 7:
+                    trend_part = parts[6]
+                    if "BEARISH" in trend_part:
                         sentiment = "BEARISH"
-                    
-                    mapped_ticker = self.ticker_mappings.get(ticker, ticker)
-                    assets.append({
-                        "ticker": mapped_ticker,
-                        "sentiment": sentiment,
-                        "buy_trade": buy_trade,
-                        "sell_trade": sell_trade,
-                        "category": "digitalassets"
-                    })
-                    print(f"Added {mapped_ticker} with buy={buy_trade}, sell={sell_trade}, sentiment={sentiment}")
-            
-            except Exception as e:
-                print(f"Error processing row for {ticker}: {e}")
+                    elif "BULLISH" in trend_part:
+                        sentiment = "BULLISH"
+                    elif "NEUTRAL" in trend_part:
+                        sentiment = "NEUTRAL"
+            except (IndexError, ValueError) as e:
+                print(f"Error extracting values for {ticker}: {e}")
                 continue
-        
-        print(f"Parsed {len(assets)} assets from DERIVATIVE EXPOSURES section")
-        return assets
+            if buy_trade is not None and sell_trade is not None:
+                mapped_ticker = self.ticker_mappings.get(ticker, ticker)
+                assets.append({
+                    "ticker": mapped_ticker,
+                    "sentiment": sentiment,
+                    "buy_trade": buy_trade,
+                    "sell_trade": sell_trade,
+                    "category": "digitalassets"
+                })
+                print(f"Added {ticker} with buy={buy_trade}, sell={sell_trade}, sentiment={sentiment}")
+    print(f"Parsed {len(assets)} assets from OCR text")
+    return assets
 
-    def parse_with_mistral_api(self, ocr_md):
-        print("Using Mistral API to parse OCR text...")
-        prompt = f"""
+def parse_risk_ranges_section(self, ocr_md):
+    print("Parsing RISK RANGES section...")
+    assets = []
+    lines = ocr_md.split('\n')
+    ticker_blocks = []
+    known_tickers = ["BTC", "ETH", "SOL", "AVAX", "XRP"]
+    print("Searching for ticker blocks...")
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        if stripped.startswith('|'):
+            for ticker in known_tickers:
+                if f"| {ticker} |" in stripped:
+                    if not any(b['start_line'] == i for b in ticker_blocks):
+                        ticker_blocks.append({'ticker': ticker, 'start_line': i})
+                        print(f"Found potential block for {ticker} starting at line {i}: {stripped}")
+                    break
+    if not ticker_blocks:
+        print("No ticker blocks identified.")
+        return []
+    for idx, block in enumerate(ticker_blocks):
+        current_ticker = block['ticker']
+        start_line = block['start_line']
+        end_line = len(lines)
+        if idx + 1 < len(ticker_blocks):
+            end_line = ticker_blocks[idx + 1]['start_line']
+        search_end_line = min(start_line + 7, end_line)
+        print(f"Processing block for {current_ticker} from line {start_line} to {search_end_line-1}")
+        buy_trade = None
+        sell_trade = None
+        sentiment = "NEUTRAL"
+        for i in range(start_line, search_end_line):
+            line = lines[i]
+            if '|' in line and "TRADE" in line and "Buy Trade" not in line and "Sell Trade" not in line:
+                print(f"  Processing TRADE row: {line}")
+                parts = [part.strip() for part in line.split('|') if part.strip()]
+                if len(parts) >= 3:
+                    try:
+                        buy_match = re.search(r'(-?\d+\.?\d*)', parts[1].replace(',', ''))
+                        sell_match = re.search(r'(-?\d+\.?\d*)', parts[2].replace(',', ''))
+                        if buy_match and sell_match:
+                            buy_trade = float(buy_match.group(1))
+                            sell_trade = float(sell_match.group(1))
+                            print(f"  Extracted buy={buy_trade}, sell={sell_trade}")
+                        else:
+                            print(f"  Could not extract buy/sell from TRADE parts: {parts}")
+                    except (ValueError, IndexError) as e:
+                        print(f"  Error extracting TRADE values: {e} from line: {line}")
+            elif '|' in line and "TREND" in line:
+                print(f"  Processing TREND row: {line}")
+                trend_upper = line.upper()
+                if "BEARISH" in trend_upper:
+                    sentiment = "BEARISH"
+                elif "BULLISH" in trend_upper:
+                    sentiment = "BULLISH"
+                elif "NEUTRAL" in trend_upper:
+                    sentiment = "NEUTRAL"
+                print(f"  Extracted sentiment={sentiment}")
+        if buy_trade is not None and sell_trade is not None:
+            mapped_ticker = self.ticker_mappings.get(current_ticker, current_ticker)
+            assets.append({
+                "ticker": mapped_ticker,
+                "sentiment": sentiment,
+                "buy_trade": buy_trade,
+                "sell_trade": sell_trade,
+                "category": "digitalassets"
+            })
+            print(f"Added {mapped_ticker} with buy={buy_trade}, sell={sell_trade}, sentiment={sentiment}")
+        else:
+            print(f"Could not find valid TRADE data for {current_ticker}.")
+    print(f"Parsed {len(assets)} assets from RISK RANGES section")
+    return assets
+
+def parse_derivative_exposures_section(self, ocr_md):
+    print("Parsing DIRECT & DERIVATIVE EXPOSURES section...")
+    assets = []
+    lines = ocr_md.split('\n')
+    
+    # Skip separator rows and empty lines
+    data_lines = [line.strip() for line in lines if line.strip() and not line.strip().startswith('| :--:')]
+    
+    # Track if we've found the header row to help identify missing tickers
+    header_found = False
+    first_data_row = False
+    
+    for i, line in enumerate(data_lines):
+        if not line or '|' not in line:
+            continue
+            
+        parts = [part.strip() for part in line.split('|') if part.strip()]
+        if len(parts) < 4:  # Need at least ticker, price, buy, sell
+            continue
+        
+        # Check if this is the header row
+        if any(header_term in line.upper() for header_term in ["TICKER", "PRICE", "BUY TRADE", "SELL TRADE", "TREND SIGNAL"]):
+            header_found = True
+            continue
+            
+        # First data row after header might be missing the IBIT ticker
+        if header_found and not first_data_row:
+            first_data_row = True
+            
+        ticker = parts[0].strip()
+        
+        # Handle case where ticker is missing but we have price data
+        # This is specifically for the IBIT row which might be missing the ticker
+        if (not re.match(r'^[A-Z]{1,5}$', ticker) or ticker == "") and first_data_row:
+            # Check if this row has numbers that look like price data
+            number_pattern = r'(?:\$?(?:\\begin\{gathered\})?(?:\\text\s*\{[^}]*\})?[\s\\\{\}]*)?(\d+\.?\d*)(?:[\s\\\}\%]*\\end\{gathered\})?'
+            all_numbers = []
+            for part in parts:
+                found_numbers = re.findall(number_pattern, part)
+                all_numbers.extend([float(n) for n in found_numbers if n])
+                
+            if len(all_numbers) >= 3:  # If we have enough numbers for price, buy, sell
+                print("Detected first row with missing ticker, assuming IBIT")
+                ticker = "IBIT"
+            else:
+                continue
+        elif not re.match(r'^[A-Z]{1,5}$', ticker) or ticker == "TICKER":  # Skip header row
+            continue
+            
+        try:
+            # Extract numbers, handling LaTeX formatting
+            number_pattern = r'(?:\$?(?:\\begin\{gathered\})?(?:\\text\s*\{[^}]*\})?[\s\\\{\}]*)?(\d+\.?\d*)(?:[\s\\\}\%]*\\end\{gathered\})?'
+            
+            # Find all numbers in the line
+            all_numbers = []
+            for part in parts:
+                found_numbers = re.findall(number_pattern, part)
+                all_numbers.extend([float(n) for n in found_numbers if n])
+            
+            if len(all_numbers) >= 3:  # Need price, buy, sell at minimum
+                # Usually the second number is buy trade and third is sell trade
+                buy_trade = all_numbers[1]  # Buy trade is usually the second number
+                sell_trade = all_numbers[2]  # Sell trade is usually the third number
+                
+                # Determine sentiment from the last part which contains TREND SIGNAL
+                sentiment = "NEUTRAL"
+                trend_part = parts[-1].upper() if len(parts) > 3 else ""
+                if "BULLISH" in trend_part:
+                    sentiment = "BULLISH"
+                elif "BEARISH" in trend_part:
+                    sentiment = "BEARISH"
+                
+                mapped_ticker = self.ticker_mappings.get(ticker, ticker)
+                assets.append({
+                    "ticker": mapped_ticker,
+                    "sentiment": sentiment,
+                    "buy_trade": buy_trade,
+                    "sell_trade": sell_trade,
+                    "category": "digitalassets"
+                })
+                print(f"Added {mapped_ticker} with buy={buy_trade}, sell={sell_trade}, sentiment={sentiment}")
+        
+        except Exception as e:
+            print(f"Error processing row for {ticker}: {e}")
+            continue
+        
+    print(f"Parsed {len(assets)} assets from DERIVATIVE EXPOSURES section")
+    return assets
+
+def parse_with_mistral_api(self, ocr_md):
+    print("Using Mistral API to parse OCR text...")
+    prompt = f"""
     Below is the OCR output in markdown format from cryptocurrency table images. There are two different table formats that need to be analyzed and extracted:
 
     1. "HEDGEYE RISK RANGES*" table - Contains crypto assets like BTC, ETH, SOL, AVAX, XRP, etc.
     Format: Each asset has a header row with the ticker, followed by rows for TRADE (buy/sell values) and TREND (sentiment).
-    Example: BTC Duration | Buy Trade | Sell Trade TRADE | 80,012 | 93,968 TREND | BEARISH
+    Example: BTC Duration | Buy Trade | Sell Trade TRADE | 80012 | 93968 TREND | BEARISH
 
     2. "DIRECT & DERIVATIVE EXPOSURES: RISK RANGE & TREND SIGNAL" table - Contains crypto-related assets like IBIT, MSTR, MARA, RIOT, ETHA, BLOK, COIN, BITO, etc.
     Format: Table with columns for TICKER, Price, Buy Trade, Sell Trade, UPSIDE, DOWNSIDE, and TREND SIGNAL.

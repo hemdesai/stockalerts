@@ -1,7 +1,7 @@
 """
 ibkr_price_update_async.py
 
-Refactored IBKR price update script using ib_async (recommended by IBKR team).
+IBKR price update script using ib_async (recommended by IBKR team).
 - Reads tickers and thresholds from stocks.db
 - Resolves contracts using ib_async (robust asset classification)
 - Fetches latest prices asynchronously for all assets

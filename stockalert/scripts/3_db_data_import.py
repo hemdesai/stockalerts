@@ -13,9 +13,9 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 # Setup logging with rotation
-log_file = Path(__file__).parent.parent / 'data' / 'data_import.log'
+LOG_FILE = Path(__file__).resolve().parent.parent.parent / 'logs' / '3_db_data_import.log'
 file_handler = TimedRotatingFileHandler(
-    filename=log_file,
+    filename=LOG_FILE,
     when='D',
     interval=1,
     backupCount=7
