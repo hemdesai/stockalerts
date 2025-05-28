@@ -14,8 +14,8 @@ def load_environment():
     Returns:
         dict: Environment variables dictionary
     """
-    # Get the path to the central .env file in the stockalert directory
-    env_path = Path(__file__).parent.parent / '.env'
+    # Get the path to the root directory .env file
+    env_path = Path(__file__).parent.parent.parent / '.env'
     
     # Log the path being used
     logging.info(f"Loading environment from: {env_path}")

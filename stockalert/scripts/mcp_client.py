@@ -75,8 +75,18 @@ class MCPClient:
             logger.error(f"Error connecting to MCP server: {e}")
             return None
     
-    def send_email(self, subject: str, html_content: str, recipient: Optional[str] = None) -> bool:
-        """Send an email"""
+    def send_email(self, subject: str, html_content: str, recipient: Optional[str] = None, bcc: Optional[str] = None) -> bool:
+        """Send an email
+        
+        Args:
+            subject: Email subject
+            html_content: HTML content of the email
+            recipient: Primary recipient email address(es), comma-separated if multiple
+            bcc: BCC recipient email address(es), comma-separated if multiple
+            
+        Returns:
+            bool: True if email was sent successfully, False otherwise
+        """
         if not self.connected and not self.check_connection():
             logger.error("MCP server is not connected, cannot send email")
             return False
@@ -89,6 +99,9 @@ class MCPClient:
             
             if recipient:
                 payload["recipient"] = recipient
+                
+            if bcc:
+                payload["bcc"] = bcc
                 
             response = self.session.post(
                 f"{self.server_url}/email/send",

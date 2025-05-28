@@ -201,17 +201,18 @@ def send_alerts(session=None):
         logger.error("MCP server is not connected. Cannot send alerts.")
         return False
     
-    # Define multiple recipients - add your additional recipients here
-    recipients = [
-        get_env('EMAIL_RECIPIENT', 'hemdesai@gmail.com'),  # Primary recipient from env
+    # Define primary recipient and BCC recipients
+    primary_recipient = get_env('EMAIL_RECIPIENT', 'hemdesai@gmail.com')  # Primary recipient from env
+    
+    # Define BCC recipients
+    bcc_recipients = [
         'parekhp@yahoo.com',  # Pranay
         'kuntalgandhi@hotmail.com',   # Kuntal
-        'harshamukesh@gmail.com'   # Mukeshmama
     ]
-    recipients_str = ','.join(recipients)  # Join with commas for SMTP format
+    bcc_str = ','.join(bcc_recipients)  # Join with commas for SMTP format
     
-    # Send email with multiple recipients
-    success = mcp_client.send_email(subject, html, recipients_str)
+    # Send email with primary recipient and BCCs
+    success = mcp_client.send_email(subject, html, primary_recipient, bcc=bcc_str)
     if success:
         logger.info(f"Alert email sent successfully to multiple recipients: {subject}")
     else:

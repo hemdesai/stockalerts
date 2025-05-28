@@ -44,6 +44,7 @@ class EmailSendRequest(BaseModel):
     subject: str
     html_content: str
     recipient: Optional[str] = None
+    bcc: Optional[str] = None
 
 # MCP Server class
 class MCPServer:
@@ -232,8 +233,18 @@ class MCPServer:
             logger.error(traceback.format_exc())
             return None
     
-    def send_email(self, subject: str, html_content: str, recipient: Optional[str] = None) -> bool:
-        """Send an email using Gmail SMTP with app password"""
+    def send_email(self, subject: str, html_content: str, recipient: Optional[str] = None, bcc: Optional[str] = None) -> bool:
+        """Send an email using Gmail SMTP with app password
+        
+        Args:
+            subject: Email subject
+            html_content: HTML content of the email
+            recipient: Primary recipient email address(es), comma-separated if multiple
+            bcc: BCC recipient email address(es), comma-separated if multiple
+        
+        Returns:
+            bool: True if email was sent successfully, False otherwise
+        """
         try:
             # Use the provided recipient or default
             to_email = recipient or self.recipient_email
@@ -243,6 +254,10 @@ class MCPServer:
             msg['Subject'] = subject
             msg['From'] = self.sender_email
             msg['To'] = to_email
+            
+            # Add BCC recipients if provided
+            if bcc:
+                msg['Bcc'] = bcc
             
             # Add HTML content
             msg.attach(MIMEText(html_content, 'html'))
@@ -311,7 +326,7 @@ def send_email(request: EmailSendRequest):
     if not mcp_server:
         raise HTTPException(status_code=500, detail="MCP server not initialized")
     
-    success = mcp_server.send_email(request.subject, request.html_content, request.recipient)
+    success = mcp_server.send_email(request.subject, request.html_content, request.recipient, request.bcc)
     if success:
         return {"status": "success", "message": "Email sent successfully"}
     else:
