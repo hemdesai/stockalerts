@@ -43,7 +43,7 @@ class CryptoEmailExtractor:
             'ETH': 'ETH-USD',
             'SOL': 'SOL-USD',
             'AVAX': 'AVAX-USD',
-            'XRP': 'XRP-USD'
+            'AAVE': 'AAVE-USD'
         }
 
     def process_local_image(self, image_path):
@@ -252,57 +252,66 @@ class CryptoEmailExtractor:
         assets = []
         lines = [line.strip() for line in ocr_md.split('\n')]
         
-        # Look for the HEDGEYE RISK RANGES header and the start of the data
+        # Look for the HEDGEYE RISK RANGES header
         risk_ranges_start = -1
-        data_start = -1
-        
         for i, line in enumerate(lines):
             if "HEDGEYE RISK RANGES" in line.upper():
                 risk_ranges_start = i
                 print(f"Found HEDGEYE RISK RANGES at line {i}")
-                
-                # Look for the start of the data (after the header and column headers)
-                for j in range(i + 1, min(i + 20, len(lines))):
-                    if any(ticker in lines[j] for ticker in ['BTC', 'ETH', 'SOL', 'AVAX', 'XRP']):
-                        data_start = j
-                        print(f"Found data start at line {data_start}")
-                        break
                 break
-        
-        if risk_ranges_start == -1 or data_start == -1:
-            print("Could not find HEDGEYE RISK RANGES section or data start")
+
+        if risk_ranges_start == -1:
+            print("Could not find HEDGEYE RISK RANGES section header")
             return []
-        
-        # Define the expected structure based on the image
-        # The data is in the format: | TICKER | Price | Buy Trade | Sell Trade | ...
-        expected_columns = ['TICKER', 'Price', 'Buy Trade', 'Sell Trade']
-        
+
+        # Dynamically find the start of the data table
+        data_start = -1
+        for i in range(risk_ranges_start + 1, min(risk_ranges_start + 10, len(lines))):
+            # A data line should contain at least 3 pipe characters
+            if lines[i].count('|') > 3:
+                data_start = i
+                print(f"Found data start at line {data_start}")
+                break
+
+        if data_start == -1:
+            print("Could not find the start of the data table.")
+            return []
+
         # Process each line that might contain crypto data
         for i in range(data_start, min(data_start + 20, len(lines))):
             line = lines[i]
             if not line or '|' not in line:
+                # Stop if we hit an empty line after the data has started
+                if assets:
+                    break
                 continue
-                
-            # Split the line into columns
+            
             columns = [col.strip() for col in line.split('|')]
-            if len(columns) < 5:  # Need at least TICKER, Price, Buy, Sell
+            if len(columns) < 5:  # Need at least empty, TICKER, Price, Buy, Sell
                 continue
-                
-            # Check if this is a line with a valid ticker
-            ticker_match = re.search(r'([A-Z]+)', columns[1])  # Ticker is in the second column (first column is empty)
-            if ticker_match and ticker_match.group(1) in ['BTC', 'ETH', 'SOL', 'AVAX', 'XRP']:
+            
+            # Dynamically extract ticker - should be 3-5 uppercase letters
+            ticker_match = re.search(r'\b([A-Z]{3,5})\b', columns[1])
+            if ticker_match:
                 current_ticker = ticker_match.group(1)
                 print(f"Found ticker: {current_ticker}")
                 
                 try:
                     # Extract buy and sell values (indices 3 and 4 for Buy and Sell Trade)
-                    buy_trade = float(columns[3].replace(',', ''))
-                    sell_trade = float(columns[4].replace(',', ''))
+                    buy_trade_str = columns[3].replace(',', '')
+                    sell_trade_str = columns[4].replace(',', '')
+
+                    # Check for non-numeric values that might be headers or empty
+                    if not re.match(r'^-?[0-9,.]+$', buy_trade_str) or not re.match(r'^-?[0-9,.]+$', sell_trade_str):
+                        print(f"Skipping non-data row for {current_ticker}: {line}")
+                        continue
+
+                    buy_trade = float(buy_trade_str)
+                    sell_trade = float(sell_trade_str)
                     
-                    # Determine sentiment (BULLISH in this case)
+                    # Determine sentiment (BULLISH in this case, as per original logic)
                     sentiment = "BULLISH"
                     
-                    # Add the asset
                     mapped_ticker = self.ticker_mappings.get(current_ticker, current_ticker)
                     assets.append({
                         "ticker": mapped_ticker,

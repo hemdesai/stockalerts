@@ -9,15 +9,13 @@ import base64
 import re
 import json
 
-# Add the project root to Python path when running directly
-if __name__ == "__main__":
-    project_root = Path(__file__).parent.parent.parent
+# Add the project root to the Python path to allow absolute imports
+project_root = Path(__file__).resolve().parent.parent.parent.parent
+if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
-    from stockalert.utils.env_loader import get_env
-    from stockalert.scripts.extractors import BaseEmailExtractor
-else:
-    from stockalert.utils.env_loader import get_env
-    from . import BaseEmailExtractor
+
+from stockalert.utils.env_loader import get_env
+from stockalert.scripts.base_email_extractor import BaseEmailExtractor
 
 class IdeasAsset(BaseModel):
     ticker: str

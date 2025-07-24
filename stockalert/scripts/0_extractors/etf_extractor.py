@@ -10,12 +10,12 @@ import requests, json
 from dotenv import load_dotenv
 from stockalert.utils.env_loader import get_env
 
-# Add the project root to Python path when running directly
-if __name__ == "__main__":
-    project_root = Path(__file__).parent.parent.parent
+# Add the project root to the Python path to allow absolute imports
+project_root = Path(__file__).resolve().parent.parent.parent.parent
+if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
 
-from stockalert.scripts.extractors import BaseEmailExtractor
+from stockalert.scripts.base_email_extractor import BaseEmailExtractor
 from io import BytesIO
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
@@ -342,39 +342,70 @@ class ETFEmailExtractor(BaseEmailExtractor):
             print(f"Error processing image: {e}")
             return []
 
+    def clean_number(self, s):
+        """Helper to clean and convert number strings to float"""
+        if not s or not isinstance(s, str):
+            return None
+        # Remove any non-numeric characters except decimal point and minus sign
+        s = re.sub(r'[^\d.-]', '', s)
+        try:
+            return float(s) if s else None
+        except ValueError:
+            return None
+
     def parse_markdown_table(self, markdown_table):
-        """Parse ETF markdown table into structured data (direct method)"""
+        """Parse ETF markdown table into structured data"""
         assets = []
-        lines = markdown_table.split('\n')
-        current_sentiment = None
-        for line in lines:
-            # Detect sentiment section headers
-            if line.strip().startswith('| BULLISH'):
-                current_sentiment = 'BULLISH'
+        lines = [line.strip() for line in markdown_table.split('\n') if line.strip()]
+        
+        # Find the header row that contains 'TICKER' and 'TREND RANGES'
+        header_line = -1
+        for i, line in enumerate(lines):
+            if 'TICKER' in line and 'TREND RANGES' in line:
+                header_line = i
+                break
+        
+        if header_line == -1:
+            print("Could not find table header with 'TICKER' and 'TREND RANGES' in markdown")
+            return assets
+        
+        # Print the header and first few rows for debugging
+        print("\nDebug - First few rows of the table:")
+        for i, line in enumerate(lines[header_line:min(header_line+5, len(lines))]):
+            print(f"{i}: {line}")
+        
+        # Get the data rows (skip header and separator rows)
+        for line in lines[header_line+2:]:  # +2 to skip header and separator
+            if not line.startswith('|'):
                 continue
-            elif line.strip().startswith('| BEARISH'):
-                current_sentiment = 'BEARISH'
+                
+            # Split the row into cells and clean them up
+            cells = [cell.strip() for cell in line.split('|')[1:-1]]  # Remove empty first/last cells
+            
+            # We expect 6 columns: BUILDIN, TICKER, DATE ADDED, RECEIVED PRICE, BUY, SELL, ASSET CLASS
+            if len(cells) < 6:
+                print(f"Skipping row with insufficient columns ({len(cells)} < 6): {line}")
                 continue
-            # Skip header and separator lines
-            if not line.strip() or line.startswith('| :--:') or line.startswith('*All ETF') or 'TICKER' in line:
-                continue
-            # Parse data rows
-            parts = [p.strip() for p in line.split('|')[1:-1]]
-            if len(parts) < 7:
-                continue
+                
             try:
-                ticker = parts[1]
-                sentiment = current_sentiment if current_sentiment else 'UNKNOWN'
-                # Trend Ranges: last two columns (parts[4], parts[5])
-                import re
-                def clean_number(s):
-                    # Remove anything that's not a digit, period, or minus sign
-                    return re.sub(r'[^0-9.\-]', '', s)
-                buy_str = clean_number(parts[4])
-                sell_str = clean_number(parts[5])
-                buy_trade = float(buy_str) if buy_str else None
-                sell_trade = float(sell_str) if sell_str else None
+                # The actual data is in this format:
+                # | BUILDIN | TICKER | DATE ADDED | RECEIVED PRICE | BUY | SELL | ASSET CLASS |
+                ticker = cells[1].strip()
+                
+                # The buy and sell prices are now in the 5th and 6th columns (0-based index 4 and 5)
+                buy_trade = self.clean_number(cells[4])  # 5th column (0-based index 4)
+                sell_trade = self.clean_number(cells[5])  # 6th column (0-based index 5)
+                
+                # Only add if we have valid values
                 if ticker and buy_trade is not None and sell_trade is not None:
+                    # Try to determine sentiment from the asset class or ticker
+                    asset_class = cells[6].lower() if len(cells) > 6 else ''
+                    sentiment = "NEUTRAL"
+                    if any(word in asset_class for word in ['bear', 'short', 'inverse']):
+                        sentiment = "BEARISH"
+                    elif any(word in asset_class for word in ['bull', 'long']):
+                        sentiment = "BULLISH"
+                    
                     asset = {
                         "ticker": ticker,
                         "sentiment": sentiment,
@@ -382,11 +413,16 @@ class ETFEmailExtractor(BaseEmailExtractor):
                         "sell_trade": sell_trade,
                         "category": "etfs"
                     }
+                    print(f"Parsed asset: {asset}")
                     assets.append(asset)
-            except (ValueError, IndexError) as e:
+                else:
+                    print(f"Skipping row with missing data - Ticker: {ticker}, Buy: {buy_trade}, Sell: {sell_trade}")
+                
+            except (IndexError, ValueError, AttributeError) as e:
                 print(f"Skipping malformed row: {line} - Error: {e}")
                 continue
-        print(f"Parsed {len(assets)} ETF assets from OCR text")
+                
+        print(f"Successfully parsed {len(assets)} ETF assets from markdown table")
         return assets
 
     def parse_with_mistral_api(self, ocr_md):

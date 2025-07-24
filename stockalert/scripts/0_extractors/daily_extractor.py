@@ -13,17 +13,12 @@ from bs4 import BeautifulSoup
 # Set up logging
 logger = logging.getLogger(__name__)
 
-# Add the project root to Python path when running directly
-if __name__ == "__main__":
-    # Get the absolute path to the project root directory
-    project_root = Path(__file__).parent.parent.parent.parent
+# Add the project root to the Python path to allow absolute imports
+project_root = Path(__file__).resolve().parent.parent.parent.parent
+if str(project_root) not in sys.path:
     sys.path.append(str(project_root))
-    
-    # When running directly, we need to import this way
-    from stockalert.scripts.extractors import BaseEmailExtractor
-else:
-    # When imported as a module by another script, we import this way
-    from . import BaseEmailExtractor
+
+from stockalert.scripts.base_email_extractor import BaseEmailExtractor
 
 # Define Pydantic models for Daily data
 class DailyAsset(BaseModel):

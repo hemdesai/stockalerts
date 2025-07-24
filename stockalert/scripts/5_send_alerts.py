@@ -204,10 +204,12 @@ def send_alerts(session=None):
     # Define primary recipient and BCC recipients
     primary_recipient = get_env('EMAIL_RECIPIENT', 'hemdesai@gmail.com')  # Primary recipient from env
     
+    
     # Define BCC recipients
     bcc_recipients = [
-        'parekhp@yahoo.com',  # Pranay
-        'kuntalgandhi@hotmail.com',   # Kuntal
+        #'parekhp@yahoo.com',  # Pranay
+        #kuntalgandhi@hotmail.com',   # Kuntal
+        'hemdesai@gmail.com',  # Hem
     ]
     bcc_str = ','.join(bcc_recipients)  # Join with commas for SMTP format
     
