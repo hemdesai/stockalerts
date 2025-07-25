@@ -16,7 +16,8 @@
       "Bash(timeout:*)",
       "Bash(rm:*)",
       "Bash(git rm:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(mv:*)"
     ],
     "deny": []
   }

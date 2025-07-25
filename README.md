@@ -1,123 +1,90 @@
-# StockAlert
+# StockAlerts
 
-A comprehensive stock and digital assets tracking and alerting system that extracts data from emails, processes it, and provides actionable trading alerts.
+A comprehensive stock alerting system with email extraction and Interactive Brokers integration.
 
-## Features
+## Projects
 
-- **Gmail Extractor**: Automatically extracts financial data from emails with specific subjects
-  - Processes "RISK RANGE", "CRYPTO QUANT", and other financial data emails
-  - Uses Mistral OCR for image processing
-  - Handles stocks, ETFs, cryptocurrencies, and daily trading signals
+### 1. HE Alerts (`/he_alerts/`) - Production System
+Automated stock alert system that:
+- Fetches daily financial emails from Gmail
+- Extracts trading signals using AI (OCR for images)
+- Updates PostgreSQL database with latest data
+- Fetches real-time prices from Interactive Brokers
+- Generates and sends price-based alerts via email
 
-- **Data Validation**: Ensures data integrity and accuracy
-  - Maps ticker symbols to standard formats (e.g., BTC → BTC-USD)
-  - Validates price data against historical records
+**[Full documentation →](he_alerts/README.md)**
 
-- **Database Management**: SQLite-based storage for financial data
-  - Maintains historical records
-  - Optimized queries for alert generation
-
-- **Automated Scheduling**:
-  - Daily/weekly updates depending on asset type
-  - CSV data generation at ~9:00 AM ET
-  - Database import at 10:55 AM ET
-  - Alerts at 11:05 AM and 2:35 PM ET
-
-- **Email Notifications**:
-  - CSV update notifications with data summaries
-  - Trading alerts with buy/sell recommendations
-  - Profit potential calculations
-
-- **Dashboard**: Streamlit-based visualization of financial data
-
-## Project Structure
-
-```
-cursor_stockalert/
-├── .env                      # Single consolidated environment file (root)
-├── .gitignore                # Central ignore file (covers logs, venv, data, etc.)
-├── logs/                     # All application logs centralized here
-├── requirements.txt          # Python dependencies
-├── README.md                 # Project documentation
-├── stockalert/               # Main application package
-│   ├── credentials/          # Service and app credentials (not in version control)
-│   ├── data/                 # SQLite DB and data files (gitignored)
-│   ├── scripts/              # All core scripts and modules
-│   │   ├── alert_system.py   # Alert generation logic
-│   │   ├── 4_prices_ibkr.py  # IBKR async price updater
-│   │   ├── 5_send_alerts.py  # Alert sending script
-│   │   ├── ...               # Other scripts (see folder)
-│   ├── utils/                # Shared utilities (env_loader, etc.)
-│   └── ...                   # Other app modules
-└── venv/ or .venv/           # Python virtual environment (gitignored)
+**Quick Start:**
+```bash
+cd he_alerts
+pip install -r requirements.txt
+cp .env.example .env
+# Configure your .env file
+python scripts/init_db.py
+python alert_workflow.py
 ```
 
-- **All logs are written to `logs/` at the repo root.**
-- **Only one `.env` file at the root is used for all scripts.**
-- **No duplicate or legacy folders; everything is consolidated for clarity.**
-- **All caches and pyc files are gitignored and excluded from source control.**
+### 2. Original StockAlert Scripts (`/stockalert/`)
+Legacy email extraction and alerting scripts:
+- Email extractors for various newsletter types
+- MCP (Model Context Protocol) server for Claude Desktop
+- SQLite-based data storage
+- IBKR price fetching scripts
 
-## Setup
+## Repository Structure
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/hemdesai/stockalert.git
-   cd stockalert
-   ```
+```
+stockalert/
+├── he_alerts/              # Production system (PostgreSQL, async)
+│   ├── app/                # FastAPI application
+│   ├── scripts/            # Utility scripts
+│   ├── docs/               # Documentation
+│   ├── .env.example        # Environment template
+│   ├── requirements.txt    # Dependencies
+│   └── README.md           # Detailed documentation
+│
+├── stockalert/             # Original scripts (SQLite, sync)
+│   ├── scripts/            
+│   │   ├── 0_extractors/   # Email extractors
+│   │   ├── 1_mcp_server.py # MCP server
+│   │   ├── 4_prices_ibkr.py # IBKR price fetcher
+│   │   └── 5_send_alerts.py # Alert sender
+│   ├── data/               # SQLite DB and CSVs
+│   └── utils/              # Shared utilities
+│
+└── logs/                   # Application logs
+```
 
-2. Install dependencies:
-   ```
-   pip install -r stockalert/requirements.txt
-   ```
+## Choosing Which System to Use
 
-3. Set up environment variables:
-   ```
-   cp stockalert/env_template.txt stockalert/.env
-   ```
-   Edit the `.env` file with your specific configuration.
+### Use HE Alerts if you need:
+- Production-ready system with validation workflow
+- PostgreSQL database (e.g., Neon.tech)
+- Async processing for better performance
+- Sentiment-based alert rules
+- Delete-before-insert data strategy (no stale data)
+- Replit deployment support
 
-4. **Ensure IBKR Gateway is running:**
-    - Before running any scripts that fetch live prices (e.g., 4_prices_ibkr.py or 5_send_alerts.py), make sure the IBKR Gateway is open and accessible on your machine. Without this, price fetching will fail.
+### Use Original Scripts if you need:
+- Simple SQLite-based storage
+- Direct CSV file manipulation
+- MCP integration with Claude Desktop
+- Legacy compatibility
 
-5. Run the dashboard:
-    ```
-    cd stockalert
-    streamlit run dashboard.py
-    ```
+## Environment Setup
 
-6. Set up scheduled tasks:
-   ```
-   python -m stockalert.scripts.data_import_scheduler --run-scheduler
-   ```
-
-## Environment Variables
-
-The following environment variables need to be set in the `.env` file:
-
-- `MISTRAL_API_KEY`: API key for Mistral OCR
-- `EMAIL_SENDER`: Gmail address for sending alerts
-- `EMAIL_PASSWORD`: App password for Gmail
-- `EMAIL_RECIPIENT`: Email address to receive alerts
-- `DATA_DIR`: Directory for data storage (default: "data")
-- `DB_PATH`: Path to SQLite database (default: "data/stocks.db")
-- `SCHEDULER_ENABLED`: Enable/disable scheduler (default: "true")
-- `CSV_IMPORT_TIME`: Time to import CSV data (default: "08:45")
-- `DB_IMPORT_TIME`: Time to import to database (default: "10:55")
-- `ALERT_TIMES`: Times to send alerts (default: "11:05,14:35")
+Both systems use environment variables for configuration. See each project's documentation for specific requirements:
+- HE Alerts: `he_alerts/.env.example`
+- Original: `stockalert/env_template.txt`
 
 ## Contributing
 
 1. Fork the repository
 2. Create your feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add some amazing feature'`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
 4. Push to the branch: `git push origin feature/amazing-feature`
 5. Open a Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- [Mistral AI](https://mistral.ai/) for OCR capabilities
-- [Streamlit](https://streamlit.io/) for dashboard visualization
+Private and proprietary.

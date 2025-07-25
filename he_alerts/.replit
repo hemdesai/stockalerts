@@ -1,0 +1,15 @@
+run = "python he_alerts/scheduled_alerts.py"
+
+[nix]
+channel = "stable-24_05"
+
+[deployment]
+run = ["sh", "-c", "python he_alerts/scheduled_alerts.py"]
+
+[[ports]]
+localPort = 8000
+externalPort = 80
+
+[env]
+PYTHONPATH = "/home/runner/${REPL_SLUG}"
+TZ = "America/New_York"
