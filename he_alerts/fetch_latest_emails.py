@@ -12,10 +12,19 @@ from sqlalchemy import select
 from app.models.stock import Stock
 
 
-async def fetch_and_process_latest_emails():
-    """Fetch latest Daily and Crypto emails and update database."""
+async def fetch_and_process_latest_emails(email_types: list = None):
+    """Fetch latest emails and update database.
+    
+    Args:
+        email_types: List of email types to process. 
+                    Defaults to ['daily', 'crypto'] if not specified.
+                    Can include: ['daily', 'crypto', 'etfs', 'ideas']
+    """
+    if email_types is None:
+        email_types = ['daily', 'crypto']
+    
     print("=" * 60)
-    print("Fetching Latest Daily and Crypto Emails")
+    print(f"Fetching Latest Emails: {', '.join(email_types)}")
     print("=" * 60)
     
     gmail_client = GmailClient()
@@ -41,56 +50,36 @@ async def fetch_and_process_latest_emails():
         
         print(f"Found {len(recent_emails)} total emails")
         
-        # Filter for Daily and Crypto emails
-        daily_emails = [e for e in recent_emails if e.get('email_type') == 'daily']
-        crypto_emails = [e for e in recent_emails if e.get('email_type') == 'crypto']
-        
-        print(f"  - Daily emails: {len(daily_emails)}")
-        print(f"  - Crypto emails: {len(crypto_emails)}")
+        # Filter emails by requested types
+        emails_by_type = {}
+        for email_type in email_types:
+            filtered = [e for e in recent_emails if e.get('email_type') == email_type]
+            if filtered:
+                emails_by_type[email_type] = filtered
+                print(f"  - {email_type.capitalize()} emails: {len(filtered)}")
         
         # Process the most recent of each type
         async with AsyncSessionLocal() as db:
-            # Process Daily email
-            if daily_emails:
-                latest_daily = daily_emails[0]  # Already sorted by date
-                print(f"\nProcessing DAILY email: {latest_daily['subject']}")
-                print(f"  Date: {latest_daily['received_date']}")
-                
-                result = await email_processor.process_specific_email(
-                    db=db,
-                    message_id=latest_daily['message_id'],
-                    email_type='daily'
-                )
-                
-                if result.get('success'):
-                    print(f"  [OK] Successfully processed: {result.get('extracted_count', 0)} stocks")
-                    if result.get('result', {}).get('extracted_items'):
-                        print("  Sample stocks:")
-                        for stock in result['result']['extracted_items'][:3]:
-                            print(f"    - {stock['ticker']}: Buy ${stock['buy_trade']}, Sell ${stock['sell_trade']}, {stock['sentiment']}")
-                else:
-                    print(f"  [ERROR] {result.get('message', 'Unknown error')}")
-            
-            # Process Crypto email
-            if crypto_emails:
-                latest_crypto = crypto_emails[0]  # Already sorted by date
-                print(f"\nProcessing CRYPTO email: {latest_crypto['subject']}")
-                print(f"  Date: {latest_crypto['received_date']}")
-                
-                result = await email_processor.process_specific_email(
-                    db=db,
-                    message_id=latest_crypto['message_id'],
-                    email_type='crypto'
-                )
-                
-                if result.get('success'):
-                    print(f"  [OK] Successfully processed: {result.get('extracted_count', 0)} stocks")
-                    if result.get('result', {}).get('extracted_items'):
-                        print("  Sample stocks:")
-                        for stock in result['result']['extracted_items'][:3]:
-                            print(f"    - {stock['ticker']}: Buy ${stock['buy_trade']}, Sell ${stock['sell_trade']}, {stock['sentiment']}")
-                else:
-                    print(f"  [ERROR] {result.get('message', 'Unknown error')}")
+            for email_type in email_types:
+                if email_type in emails_by_type and emails_by_type[email_type]:
+                    latest_email = emails_by_type[email_type][0]  # Already sorted by date
+                    print(f"\nProcessing {email_type.upper()} email: {latest_email['subject']}")
+                    print(f"  Date: {latest_email['received_date']}")
+                    
+                    result = await email_processor.process_specific_email(
+                        db=db,
+                        message_id=latest_email['message_id'],
+                        email_type=email_type
+                    )
+                    
+                    if result.get('success'):
+                        print(f"  [OK] Successfully processed: {result.get('extracted_count', 0)} stocks")
+                        if result.get('result', {}).get('extracted_items'):
+                            print("  Sample stocks:")
+                            for stock in result['result']['extracted_items'][:3]:
+                                print(f"    - {stock['ticker']}: Buy ${stock['buy_trade']}, Sell ${stock['sell_trade']}, {stock['sentiment']}")
+                    else:
+                        print(f"  [ERROR] {result.get('message', 'Unknown error')}")
                     
     except Exception as e:
         print(f"Error fetching/processing emails: {e}")
@@ -195,8 +184,16 @@ async def export_updated_csv():
 
 async def main():
     """Main function."""
+    import sys
+    
+    # Check if email types were specified
+    email_types = None
+    if len(sys.argv) > 1:
+        email_types = sys.argv[1:]
+        print(f"Processing specific email types: {email_types}")
+    
     # Fetch and process latest emails
-    await fetch_and_process_latest_emails()
+    await fetch_and_process_latest_emails(email_types)
     
     # Export updated CSV
     csv_file = await export_updated_csv()

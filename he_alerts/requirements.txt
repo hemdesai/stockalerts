@@ -32,6 +32,7 @@ pydantic-settings==2.1.0
 
 # Scheduling
 apscheduler==3.10.4
+holidays==0.39
 
 # Utilities
 python-dotenv==1.0.0

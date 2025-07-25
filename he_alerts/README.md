@@ -151,15 +151,20 @@ Options:
 - `--no-email`: Generate alerts without sending
 - `--test-mode`: Send to test recipients only
 
-### 3. Scheduled Execution
-For production deployment:
+### 3. Automated Scheduler (Production)
+For production deployment with market holiday awareness:
 ```bash
-python he_alerts/scheduled_alerts.py
+python he_alerts/automated_scheduler.py
 ```
 
-This runs automatically at:
-- **AM Session**: 9:00 AM EST
-- **PM Session**: 3:30 PM EST
+This runs automatically on market days only:
+- **Email Extraction**: 9:00 AM EST
+  - First market day of week: All 4 types (daily, crypto, etfs, ideas)
+  - Other market days: 2 types (daily, crypto)
+- **Morning Alerts**: 10:45 AM EST
+- **Afternoon Alerts**: 2:30 PM EST
+
+The scheduler automatically skips US market holidays.
 
 ## 📁 Project Structure
 
@@ -178,10 +183,16 @@ he_alerts/
 │           ├── contract_resolver.py
 │           └── price_fetcher.py
 ├── scripts/
-│   └── init_db.py          # Database initialization
+│   ├── init_db.py          # Database initialization
+│   └── diagnostics/        # Check scripts
+├── docs/                   # Documentation
+│   ├── AUTOMATED_SCHEDULER.md
+│   ├── FLOW_DIAGRAM.md
+│   └── SYSTEM_ARCHITECTURE.md
 ├── alert_workflow.py       # Main workflow orchestrator
-├── validate_emails.py      # Validation without DB update
-└── scheduled_alerts.py     # Production scheduler
+├── automated_scheduler.py  # Production scheduler with holidays
+├── fetch_latest_emails.py  # Email extraction
+└── validate_emails.py      # Validation without DB update
 ```
 
 ## 🗄️ Database Schema

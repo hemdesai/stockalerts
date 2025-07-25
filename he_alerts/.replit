@@ -1,4 +1,4 @@
-run = "python he_alerts/scheduled_alerts.py"
+run = "python he_alerts/automated_scheduler.py"
 
 [nix]
 channel = "stable-24_05"
