@@ -95,4 +95,4 @@ ALERT_TO_EMAILS=["recipient@email.com"]
 - `33288e7`: Complete HE Alerts system with simplified architecture
 - `cb04bb0`: Clean up repository and prepare for Replit deployment
 
-The system is now clean, documented, and ready for production deployment on Replit.
+The system is now clean, documented, and ready for production deployment on Replit.how 
