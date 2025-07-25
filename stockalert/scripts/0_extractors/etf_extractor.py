@@ -51,18 +51,18 @@ class ETFEmailExtractor(BaseEmailExtractor):
         self.mistral_api_key = get_env('MISTRAL_API_KEY')
 
     def extract_image_from_email(self):
-        """Extract the ETF table image from the most recent email with 'ETF Pro Plus - Levels' in subject"""
+        """Extract the ETF table image from this week's email with 'ETF Pro Plus - Levels' in subject (weekly on Monday)"""
         try:
-            # Search for emails from the last 30 days (to ensure we get the most recent weekly email)
-            thirty_days_ago = (datetime.now() - timedelta(days=30)).strftime('%Y/%m/%d')
-            query = f'subject:"ETF Pro Plus - Levels" after:{thirty_days_ago}'
-            print(f"Searching for emails with query: {query}")
+            # Search for emails from the last 7 days (ETF is weekly, usually Monday)
+            seven_days_ago = (datetime.now() - timedelta(days=7)).strftime('%Y/%m/%d')
+            query = f'subject:"ETF Pro Plus - Levels" after:{seven_days_ago}'
+            print(f"Searching for this week's ETF email with query: {query}")
             
             # Get the email content
             email_content = self.get_email_content(query)
             
             if not email_content:
-                print("No ETF Pro Plus emails found in the last 30 days")
+                print("No ETF Pro Plus emails found in the last 7 days")
                 return None
             
             print(f"Found email content, length: {len(email_content)}")

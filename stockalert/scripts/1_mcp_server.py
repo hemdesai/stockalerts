@@ -23,6 +23,7 @@ from email.mime.multipart import MIMEMultipart
 from contextlib import asynccontextmanager
 
 from stockalert.utils.env_loader import get_env
+from stockalert.utils.gmail_config import get_credentials_path, get_token_path
 
 # Setup logging
 logging.basicConfig(
@@ -46,6 +47,13 @@ class EmailSendRequest(BaseModel):
     recipient: Optional[str] = None
     bcc: Optional[str] = None
 
+class EmailAttachmentResponse(BaseModel):
+    filename: str
+    data: str  # base64 encoded
+
+class AttachmentsResponse(BaseModel):
+    attachments: list[EmailAttachmentResponse]
+
 # MCP Server class
 class MCPServer:
     """Mail Client Protocol Server for Gmail interactions"""
@@ -56,8 +64,8 @@ class MCPServer:
             # Set up paths
             self.root_dir = Path(__file__).parent.parent
             self.credentials_dir = self.root_dir / 'credentials'
-            self.token_path = self.credentials_dir / 'token.json'
-            self.creds_path = self.credentials_dir / 'credentials.json'
+            self.token_path = get_token_path()
+            self.creds_path = get_credentials_path()
             
             # Create credentials directory if it doesn't exist
             self.credentials_dir.mkdir(exist_ok=True)
@@ -118,10 +126,10 @@ class MCPServer:
                     try:
                         from google_auth_oauthlib.flow import InstalledAppFlow
                         
-                        # Check if credentials.json exists
+                        # Check if credentials file exists
                         if not self.creds_path.exists():
-                            logger.error(f"credentials.json not found at {self.creds_path}")
-                            raise FileNotFoundError(f"credentials.json not found at {self.creds_path}")
+                            logger.error(f"Gmail credentials file not found at {self.creds_path}")
+                            raise FileNotFoundError(f"Gmail credentials file not found at {self.creds_path}")
                         
                         logger.info(f"Starting OAuth flow with scopes: {self.SCOPES}")
                         flow = InstalledAppFlow.from_client_secrets_file(str(self.creds_path), self.SCOPES)
@@ -233,6 +241,86 @@ class MCPServer:
             logger.error(traceback.format_exc())
             return None
     
+    def get_email_attachments(self, query: str, max_results: int = 1) -> list:
+        """Get attachments from latest matching email"""
+        try:
+            # Check cache first
+            cache_key = f"attachments_{query}_{max_results}"
+            if cache_key in self.email_cache:
+                cache_entry = self.email_cache[cache_key]
+                if time.time() - cache_entry['timestamp'] < self.email_cache_expiry:
+                    logger.info(f"Using cached attachments for query: {query}")
+                    return cache_entry['attachments']
+            
+            # Query Gmail API
+            try:
+                messages = self.gmail_service.users().messages().list(
+                    userId='me', q=query, maxResults=max_results
+                ).execute().get('messages', [])
+            except HttpError as e:
+                logger.error(f"Error querying Gmail API: {e}")
+                return []
+            
+            if not messages:
+                logger.info(f"No emails found for query: {query}")
+                return []
+            
+            # Get the message attachments
+            try:
+                msg_id = messages[0]['id']
+                message = self.gmail_service.users().messages().get(
+                    userId='me', id=msg_id, format='full'
+                ).execute()
+            except HttpError as e:
+                logger.error(f"Error getting message: {e}")
+                return []
+            
+            # Extract attachments
+            attachments = []
+            
+            def process_parts(parts):
+                for part in parts:
+                    if part.get('filename'):
+                        attachment_id = part['body'].get('attachmentId')
+                        if attachment_id:
+                            try:
+                                attachment = self.gmail_service.users().messages().attachments().get(
+                                    userId='me', messageId=msg_id, id=attachment_id
+                                ).execute()
+                                
+                                file_data = base64.urlsafe_b64decode(attachment['data'].encode('UTF-8'))
+                                attachments.append({
+                                    'filename': part['filename'],
+                                    'data': file_data
+                                })
+                                logger.info(f"Found attachment: {part['filename']}")
+                            except Exception as e:
+                                logger.error(f"Error downloading attachment {part['filename']}: {e}")
+                    
+                    # Process nested parts
+                    if 'parts' in part:
+                        process_parts(part['parts'])
+            
+            if 'payload' in message:
+                if 'parts' in message['payload']:
+                    process_parts(message['payload']['parts'])
+            
+            # Cache the attachments
+            if attachments:
+                self.email_cache[cache_key] = {
+                    'attachments': attachments,
+                    'timestamp': time.time()
+                }
+            
+            logger.info(f"Found {len(attachments)} attachments for query: {query}")
+            return attachments
+            
+        except Exception as e:
+            logger.error(f"Error getting email attachments: {e}")
+            import traceback
+            logger.error(traceback.format_exc())
+            return []
+    
     def send_email(self, subject: str, html_content: str, recipient: Optional[str] = None, bcc: Optional[str] = None) -> bool:
         """Send an email using Gmail SMTP with app password
         
@@ -318,6 +406,26 @@ def get_email_content(query: EmailQuery):
         return {"content": content}
     else:
         raise HTTPException(status_code=404, detail="No matching emails found")
+
+@app.post("/email/attachments")
+def get_email_attachments(query: EmailQuery):
+    """Get attachments from latest matching email"""
+    global mcp_server
+    if not mcp_server:
+        raise HTTPException(status_code=500, detail="MCP server not initialized")
+    
+    attachments = mcp_server.get_email_attachments(query.query, query.max_results)
+    if attachments:
+        # Convert binary data to base64 for JSON response
+        response_attachments = []
+        for att in attachments:
+            response_attachments.append({
+                "filename": att['filename'],
+                "data": base64.b64encode(att['data']).decode('utf-8')
+            })
+        return {"attachments": response_attachments}
+    else:
+        raise HTTPException(status_code=404, detail="No attachments found")
 
 @app.post("/email/send")
 def send_email(request: EmailSendRequest):

@@ -75,6 +75,48 @@ class MCPClient:
             logger.error(f"Error connecting to MCP server: {e}")
             return None
     
+    def get_email_attachments(self, query: str, max_results: int = 1) -> list:
+        """Get attachments from latest matching email"""
+        if not self.connected and not self.check_connection():
+            logger.error("MCP server is not connected, cannot get email attachments")
+            return []
+            
+        try:
+            response = self.session.post(
+                f"{self.server_url}/email/attachments",
+                json={"query": query, "max_results": max_results},
+                timeout=self.timeout
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                attachments = []
+                for att in data.get("attachments", []):
+                    # Decode base64 data back to binary
+                    import base64
+                    attachments.append({
+                        'filename': att['filename'],
+                        'data': base64.b64decode(att['data'])
+                    })
+                return attachments
+            elif response.status_code == 404:
+                logger.warning(f"No attachments found for query: {query}")
+                return []
+            else:
+                logger.error(f"Error getting email attachments: {response.text}")
+                return []
+                
+        except requests.exceptions.ConnectionError:
+            logger.error("Connection error: MCP server is not reachable")
+            self.connected = False
+            return []
+        except requests.exceptions.Timeout:
+            logger.error("Timeout error: MCP server did not respond in time")
+            return []
+        except Exception as e:
+            logger.error(f"Error connecting to MCP server: {e}")
+            return []
+    
     def send_email(self, subject: str, html_content: str, recipient: Optional[str] = None, bcc: Optional[str] = None) -> bool:
         """Send an email
         

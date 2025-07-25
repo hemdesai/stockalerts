@@ -4,7 +4,7 @@ from pathlib import Path
 from pydantic import BaseModel
 import pandas as pd
 import requests
-from datetime import datetime
+from datetime import datetime, timedelta
 import base64
 import re
 import json
@@ -392,23 +392,67 @@ Rules:
         print(f"Manually parsed {len(assets)} assets")
         return assets
     
-    def extract(self):
-        """Main method to extract ideas data from the local image"""
+    def extract_image_from_email(self):
+        """Extract ideas image from this week's email with 'FW: Investing Ideas Newsletter:' in subject (weekly on Monday)"""
         try:
-            print(f"Starting ideas extraction from local image at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}...")
+            # Search for emails from the last 7 days (ideas is weekly, usually Monday)
+            seven_days_ago = (datetime.now() - timedelta(days=7)).strftime('%Y/%m/%d')
+            query = f'subject:"FW: Investing Ideas Newsletter:" after:{seven_days_ago}'
+            print(f"Searching for this week's ideas email with query: {query}")
             
-            # Define the path to the local image
-            project_root = Path(__file__).parent.parent.parent
-            data_dir = project_root / 'data'
-            image_path = data_dir / 'ideas.png'
+            # Get the email attachments
+            attachments = self.get_email_attachments(query)
             
-            if not os.path.exists(image_path):
-                print(f"Error: Image file not found at {image_path}")
-                print("Please add ideas.png to the data folder.")
+            if not attachments:
+                print("No ideas emails found with attachments in the last 7 days")
+                return None
+            
+            print(f"Found {len(attachments)} attachments")
+            
+            # Find PNG images
+            png_images = [att for att in attachments if att['filename'].lower().endswith('.png')]
+            
+            if not png_images:
+                print("No PNG images found in the email attachments")
+                return None
+            
+            # Return the first PNG image data
+            print(f"Found {len(png_images)} PNG image(s), using the first one")
+            return png_images[0]['data']
+            
+        except Exception as e:
+            print(f"Error extracting image from email: {e}")
+            import traceback
+            traceback.print_exc()
+            return None
+
+    def extract_from_email(self):
+        """Extract ideas data from email"""
+        try:
+            print(f"Starting ideas extraction from Gmail at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}...")
+            
+            # Get the image from email
+            image_data = self.extract_image_from_email()
+            
+            if not image_data:
+                print("Failed to get ideas image from email")
                 return []
             
+            # Save the image temporarily for processing
+            project_root = Path(__file__).parent.parent.parent
+            data_dir = project_root / 'data'
+            data_dir.mkdir(exist_ok=True)
+            temp_image_path = data_dir / 'temp_ideas.png'
+            
+            with open(temp_image_path, 'wb') as f:
+                f.write(image_data)
+            
             # Process the image
-            ideas_data = self.process_image(image_path)
+            ideas_data = self.process_image(temp_image_path)
+            
+            # Clean up temp file
+            if temp_image_path.exists():
+                os.remove(temp_image_path)
             
             if ideas_data:
                 # Read the CSV file to return the data
@@ -423,11 +467,17 @@ Rules:
             else:
                 print("Ideas extraction failed")
                 return []
+                
         except Exception as e:
-            print(f"Error in extract method: {e}")
+            print(f"Error in extract_from_email method: {e}")
             import traceback
             traceback.print_exc()
             return []
+
+
+    def extract(self):
+        """Main method to extract ideas data from email"""
+        return self.extract_from_email()
 
 
 if __name__ == "__main__":

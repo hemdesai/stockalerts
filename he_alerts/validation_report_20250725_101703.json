@@ -1,0 +1,17 @@
+{
+  "timestamp": "2025-07-25T10:17:03.431929",
+  "summary": {
+    "total_extracted": 0,
+    "new_stocks": 0,
+    "updated_stocks": 0,
+    "unchanged_stocks": 0,
+    "suspicious_changes": 0
+  },
+  "extraction_results": {},
+  "database_comparison": {
+    "new_stocks": [],
+    "updated_stocks": [],
+    "unchanged_stocks": [],
+    "suspicious_changes": []
+  }
+}

@@ -8,6 +8,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
 
 from .mcp_client import MCPClient
+from stockalert.utils.gmail_config import get_credentials_path, get_token_path
 
 # Set up logging
 logger = logging.getLogger(__name__)
@@ -30,11 +31,9 @@ class BaseEmailExtractor:
 
     def setup_gmail(self):
         creds = None
-        # Define paths relative to this file's location
-        script_dir = os.path.dirname(__file__)
-        credentials_dir = os.path.abspath(os.path.join(script_dir, '..', 'credentials'))
-        token_path = os.path.join(credentials_dir, 'token.json')
-        credentials_path = os.path.join(credentials_dir, 'credentials.json')
+        # Get paths from configuration
+        token_path = str(get_token_path())
+        credentials_path = str(get_credentials_path())
 
         if os.path.exists(token_path):
             creds = Credentials.from_authorized_user_file(token_path, self.SCOPES)
@@ -44,9 +43,17 @@ class BaseEmailExtractor:
                     creds.refresh(Request())
                 except Exception as e:
                     logger.error(f"Error refreshing token: {e}")
-                    creds = self.run_gmail_flow(credentials_path)
+                    if os.path.exists(credentials_path):
+                        creds = self.run_gmail_flow(credentials_path)
+                    else:
+                        logger.error(f"Gmail credentials file not found at: {credentials_path}")
+                        raise FileNotFoundError(f"Gmail credentials file not found at: {credentials_path}")
             else:
-                creds = self.run_gmail_flow(credentials_path)
+                if os.path.exists(credentials_path):
+                    creds = self.run_gmail_flow(credentials_path)
+                else:
+                    logger.error(f"Gmail credentials file not found at: {credentials_path}")
+                    raise FileNotFoundError(f"Gmail credentials file not found at: {credentials_path}")
             with open(token_path, 'w') as token:
                 token.write(creds.to_json())
         return build('gmail', 'v1', credentials=creds)

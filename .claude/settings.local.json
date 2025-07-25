@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Bash(start /b python:*)",
+      "Bash(mkdir:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(cp:*)",
+      "Bash(pip install:*)",
+      "Bash(python:*)",
+      "Bash(ls:*)",
+      "Bash(grep:*)",
+      "Bash(timeout 30 python debug_etf_ocr.py)",
+      "Bash(timeout:*)",
+      "Bash(rm:*)",
+      "Bash(git rm:*)",
+      "Bash(rm:*)"
+    ],
+    "deny": []
+  }
+}

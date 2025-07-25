@@ -7,15 +7,17 @@ import requests
 from pathlib import Path
 from pydantic import BaseModel
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
 
 # Add project root to path when running directly
 if __name__ == "__main__":
     project_root = Path(__file__).parent.parent.parent.parent
     sys.path.append(str(project_root))
     from stockalert.utils.env_loader import get_env
+    from stockalert.scripts.base_email_extractor import BaseEmailExtractor
 else:
     from stockalert.utils.env_loader import get_env
+    from stockalert.scripts.base_email_extractor import BaseEmailExtractor
 
 class RangeData(BaseModel):
     low: float
@@ -31,8 +33,9 @@ class CryptoAsset(BaseModel):
 class CryptoData(BaseModel):
     assets: list[CryptoAsset]
 
-class CryptoEmailExtractor:
+class CryptoEmailExtractor(BaseEmailExtractor):
     def __init__(self):
+        super().__init__()
         self.mistral_api_key = get_env('MISTRAL_API_KEY')
         if not self.mistral_api_key:
             print("Warning: MISTRAL_API_KEY not found in environment variables.")
@@ -46,17 +49,6 @@ class CryptoEmailExtractor:
             'AAVE': 'AAVE-USD'
         }
 
-    def process_local_image(self, image_path):
-        if not os.path.exists(image_path):
-            print(f"Error: Image file not found at {image_path}")
-            return []
-        try:
-            with open(image_path, 'rb') as f:
-                image_data = f.read()
-            return self.process_image(image_data)
-        except Exception as e:
-            print(f"Error processing local image: {e}")
-            return []
 
     def process_image(self, image_data):
         try:
@@ -482,23 +474,91 @@ Important notes:
             crypto_assets = self.parse_ocr_text(ocr_md)
         return crypto_assets
 
-    def extract_from_local_images(self):
-        print(f"Starting crypto extraction from local images at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}...")
+    def extract_images_from_email(self):
+        """Extract crypto images from today's email with 'FW: CRYPTO QUANT' in subject (daily)"""
+        try:
+            # Search for emails from today (crypto is daily)
+            today = datetime.now().strftime('%Y/%m/%d')
+            # Use broader search pattern to match the actual email subject
+            query = f'subject:"FW: CRYPTO QUANT" after:{today}'
+            print(f"Searching for today's crypto email with query: {query}")
+            
+            # Get the email attachments
+            attachments = self.get_email_attachments(query)
+            
+            if not attachments:
+                print("No crypto emails found with attachments today")
+                # Try broader search pattern for today
+                query = f'from:hedgeye.com subject:CRYPTO after:{today}'
+                print(f"Trying broader search for today: {query}")
+                attachments = self.get_email_attachments(query)
+                
+                if not attachments:
+                    # Try yesterday as fallback
+                    yesterday = (datetime.now() - timedelta(days=1)).strftime('%Y/%m/%d')
+                    query = f'from:hedgeye.com subject:CRYPTO after:{yesterday}'
+                    print(f"Trying yesterday's email with query: {query}")
+                    attachments = self.get_email_attachments(query)
+                    
+                    if not attachments:
+                        print("No crypto emails found with attachments yesterday either")
+                        return None, None
+            
+            print(f"Found {len(attachments)} attachments")
+            
+            # Sort attachments by filename to ensure consistent ordering
+            attachments.sort(key=lambda x: x['filename'])
+            
+            # Find PNG images (should be 2 crypto images)
+            png_images = [att for att in attachments if att['filename'].lower().endswith('.png')]
+            
+            if len(png_images) == 0:
+                print("No PNG images found in the email attachments")
+                return None, None
+            elif len(png_images) == 1:
+                print("Found 1 PNG image in the email")
+                return png_images[0]['data'], None
+            else:
+                print(f"Found {len(png_images)} PNG images in the email")
+                # Return first two images
+                return png_images[0]['data'], png_images[1]['data'] if len(png_images) > 1 else None
+            
+        except Exception as e:
+            print(f"Error extracting images from email: {e}")
+            import traceback
+            traceback.print_exc()
+            return None, None
+
+    def extract_from_email(self):
+        print(f"Starting crypto extraction from Gmail at {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}...")
         project_root = Path(__file__).parent.parent.parent
         data_dir = project_root / 'data'
-        crypto1_path = data_dir / 'crypto1.png'
-        crypto2_path = data_dir / 'crypto2.png'
+        data_dir.mkdir(exist_ok=True)
+        
         crypto_assets = []
         
-        print(f"Processing crypto image 1: {crypto1_path}")
-        crypto_assets1 = self.process_local_image(crypto1_path)
-        print(f"Extracted {len(crypto_assets1)} assets from crypto image 1")
-        crypto_assets.extend(crypto_assets1)
+        # Extract images from email
+        image1_data, image2_data = self.extract_images_from_email()
         
-        print(f"Processing crypto image 2: {crypto2_path}")
-        crypto_assets2 = self.process_local_image(crypto2_path)
-        print(f"Extracted {len(crypto_assets2)} assets from crypto image 2")
-        crypto_assets.extend(crypto_assets2)
+        if image1_data:
+            print("Processing crypto image 1 from email...")
+            crypto_assets1 = self.process_image(image1_data)
+            print(f"Extracted {len(crypto_assets1)} assets from crypto image 1")
+            crypto_assets.extend(crypto_assets1)
+        else:
+            print("No first crypto image found in email")
+        
+        if image2_data:
+            print("Processing crypto image 2 from email...")
+            crypto_assets2 = self.process_image(image2_data)
+            print(f"Extracted {len(crypto_assets2)} assets from crypto image 2")
+            crypto_assets.extend(crypto_assets2)
+        else:
+            print("No second crypto image found in email")
+        
+        if not crypto_assets:
+            print("No crypto assets extracted from email images")
+            return crypto_assets
         
         bullish_count = sum(1 for asset in crypto_assets if asset["sentiment"] == "BULLISH")
         bearish_count = sum(1 for asset in crypto_assets if asset["sentiment"] == "BEARISH")
@@ -529,6 +589,11 @@ Important notes:
         print(f"CSV saved to: {data_dir / 'digitalassets.csv'}")
         return crypto_assets
 
+    def extract(self):
+        """Main method to extract crypto data from email"""
+        return self.extract_from_email()
+
+
     def cleanup_temp_files(self, data_dir):
         try:
             temp_files = list(data_dir.glob('temp_crypto_*.png'))
@@ -547,4 +612,4 @@ Important notes:
 
 if __name__ == "__main__":
     extractor = CryptoEmailExtractor()
-    extractor.extract_from_local_images()
+    extractor.extract()

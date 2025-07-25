@@ -1,0 +1,109 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "he-alerts"
+version = "1.0.0"
+description = "Automated stock alert system with email processing and IBKR integration"
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [
+    {name = "Hem Desai", email = "hemdesai@gmail.com"}
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Financial and Insurance Industry",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+dependencies = [
+    "fastapi>=0.104.1",
+    "uvicorn[standard]>=0.24.0",
+    "sqlalchemy>=2.0.25",
+    "asyncpg>=0.29.0",
+    "alembic>=1.13.1",
+    "pydantic>=2.5.2",
+    "pydantic-settings>=2.1.0",
+    "python-dotenv>=1.0.0",
+    "google-auth>=2.25.2",
+    "google-auth-oauthlib>=1.2.0",
+    "google-api-python-client>=2.110.0",
+    "ib-async>=0.9.86",
+    "mistralai>=0.0.12",
+    "beautifulsoup4>=4.12.2",
+    "pandas>=2.1.4",
+    "apscheduler>=3.10.4",
+    "pytz>=2023.3.post1",
+    "structlog>=23.2.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.3",
+    "pytest-asyncio>=0.21.1",
+    "httpx>=0.25.2",
+    "black>=23.11.0",
+    "isort>=5.13.2",
+    "flake8>=6.1.0",
+    "mypy>=1.8.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/hemdesai/he_alerts"
+Repository = "https://github.com/hemdesai/he_alerts"
+
+[tool.black]
+line-length = 88
+target-version = ['py311']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # directories
+  \.eggs
+  | \.git
+  | \.hg
+  | \.mypy_cache
+  | \.tox
+  | \.venv
+  | build
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+known_first_party = ["app"]
+
+[tool.mypy]
+python_version = "3.11"
+check_untyped_defs = true
+disallow_any_generics = true
+disallow_incomplete_defs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+
+[[tool.mypy.overrides]]
+module = [
+    "ib_async.*",
+    "mistralai.*",
+    "google.*",
+    "googleapiclient.*",
+]
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-ra -q --strict-markers"
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "integration: marks tests as integration tests",
+]
